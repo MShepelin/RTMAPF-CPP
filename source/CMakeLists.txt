@@ -3,4 +3,5 @@ add_library(search
 	"space.cpp"
 )
 
+set_property(TARGET search PROPERTY CXX_STANDARD 17)
 target_include_directories(search PRIVATE ${RMP_include_dirs})

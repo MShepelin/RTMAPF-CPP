@@ -1,14 +1,14 @@
 #pragma once
 
-typedef bool Access;
+using Access = bool;
 
 #define ACCESSABLE true
 #define INACCESSABLE false
 
 struct Point
 {
-  int x;
-  int y;
+  uint32_t x;
+  uint32_t y;
 
   Point operator+(Point other)
   {
