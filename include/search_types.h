@@ -1,5 +1,7 @@
 #pragma once
 
+#include <inttypes.h>
+
 using Access = bool;
 
 #define ACCESSABLE true
