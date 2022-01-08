@@ -1,10 +1,11 @@
-#include "search.h"
+#include "space.h"
 #include <gtest/gtest.h>
 
 TEST(Baseline, CheckSum)
 {
-  int ans = Sum(2, 3);
-  ASSERT_EQ(ans, 5);
+  Space space(3, 3);
+  space.SetAccess({ 2, 2 }, INACCESSABLE);
+  ASSERT_EQ(space.GetAccess({ 2, 2 }), INACCESSABLE);
 }
 
 int main(int argc, char* argv[])
