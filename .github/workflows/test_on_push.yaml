@@ -1,0 +1,22 @@
+name: Testing on push events
+on:
+  push:
+    branches:
+      - '*'
+jobs:
+  build:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install and run Cmake
+        run: |
+            sudo apt-get -y update
+            sudo apt-get -y install cmake
+            mkdir build
+            cd build
+            cmake ..
+      - name: Execute testing
+        run: |
+            cd build
+            make run_push_tests
+            ./test/run_push_tests
