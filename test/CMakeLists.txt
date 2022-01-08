@@ -1,0 +1,5 @@
+add_executable(run_push_tests push_tests.cpp)
+target_include_directories(run_push_tests PRIVATE ${gtest_build_include_dirs} PRIVATE ${RMP_include_dirs})
+target_link_libraries(run_push_tests PRIVATE gtest_main PRIVATE search)
+#target_compile_definitions(run_push_tests PUBLIC FOO)
+#target_compile_definitions(run_push_tests PUBLIC FOO2)
