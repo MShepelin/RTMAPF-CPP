@@ -1,5 +1,5 @@
 add_executable(run_push_tests push_tests.cpp)
+set_property(TARGET run_push_tests PROPERTY CXX_STANDARD 17)
 target_include_directories(run_push_tests PRIVATE ${gtest_build_include_dirs} PRIVATE ${RMP_include_dirs})
 target_link_libraries(run_push_tests PRIVATE gtest_main PRIVATE search)
-#target_compile_definitions(run_push_tests PUBLIC FOO)
-#target_compile_definitions(run_push_tests PUBLIC FOO2)
+target_compile_definitions(run_push_tests PRIVATE TEST_DATA_PATH="${CMAKE_SOURCE_DIR}/test/test-data")
