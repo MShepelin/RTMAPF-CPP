@@ -57,7 +57,7 @@ TEST(SegmentsTests, Union)
 
   Segment g{ 10, 15 };
   ASSERT_FALSE((g & a).IsValid());
-  ASSERT_DEATH(g | a, "Assertion failed:.");
+  ASSERT_DEATH(g | a, ".*Assertion.*failed.*");
 }
 
 TEST(SegmentsTests, Comparison)
