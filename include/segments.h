@@ -27,12 +27,15 @@ struct Segment
   Segment operator|(const Segment& other) const;
 
   bool operator<(const Segment& other) const;
+
+  bool operator==(const Segment& other) const;
 };
 
 class SegmentHolder
 {
 private:
   std::set<Segment> segments;
+  using const_iterator = std::set<Segment>::const_iterator;
 
 public:
   /**
@@ -40,4 +43,8 @@ public:
    * the new one will be added. Otherwise, a united segment will be created.
    */
   void AddSegment(Segment newSegment);
+
+  const_iterator begin() const;
+
+  const_iterator end() const;
 };

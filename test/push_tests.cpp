@@ -1,15 +1,16 @@
 #include "space.h"
+#include "segments.h"
 #include <fstream>
 #include <gtest/gtest.h>
 
-TEST(Baseline, CheckSum)
+TEST(SpaceTests, Construction)
 {
   Space space(3, 3);
   space.SetAccess({ 2, 2 }, INACCESSABLE);
   ASSERT_EQ(space.GetAccess({ 2, 2 }), INACCESSABLE);
 }
 
-TEST(Baseline, ReadHogFormatMap)
+TEST(SpaceTests, ReadHogFormat)
 {
   SpaceReader reader;
   std::ifstream file(TEST_DATA_PATH "/chess_like.map");
@@ -28,6 +29,51 @@ TEST(Baseline, ReadHogFormatMap)
       Point point{ i, j };
       ASSERT_EQ(space.value().GetAccess(point), correctAccess);
     }
+  }
+}
+
+TEST(SegmentsTests, Intersection)
+{
+  Segment b{ 0, 10 };
+  Segment c{ 2, 8 };
+  ASSERT_EQ(c, c & b);
+  ASSERT_EQ(c, b & c);
+  ASSERT_EQ(c, c);
+
+  Segment a{ -5, 5 };
+  Segment d{ 0, 5 };
+  ASSERT_EQ(d, a & b);
+  ASSERT_EQ(d, b & a);
+}
+
+TEST(SegmentsTests, Union)
+{
+  Segment a{ -5, 5 };
+  Segment b{ 5, 10 };
+  Segment c{ -5, 10 };
+  ASSERT_EQ(a | b, c);
+  ASSERT_EQ(b | a, c);
+
+  Segment g{ 10, 15 };
+  ASSERT_FALSE((g & a).IsValid());
+  ASSERT_DEATH(g | a, "Assertion failed:.");
+}
+
+TEST(SegmentHolderTests, Addition)
+{
+  SegmentHolder segments;
+  std::vector<Segment> answer = { {0, 2}, {3, 4}, {5, 6} };
+
+  for (Segment s : answer)
+  {
+    segments.AddSegment(s);
+  }
+
+  auto iterator = segments.begin();
+  for (size_t i = 0; i < answer.size(); ++i)
+  {
+    ASSERT_FALSE(iterator == segments.end());
+    ASSERT_EQ(*(iterator++), answer[i]);
   }
 }
 
