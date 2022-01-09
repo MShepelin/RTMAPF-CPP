@@ -18,7 +18,7 @@ bool Segment::IsValid() const
 bool Segment::operator<(const Segment& other) const
 {
   assert(IsValid() && other.IsValid());
-  return start < other.start;
+  return end < other.end;
 }
 
 Segment Segment::operator|(const Segment& other) const
@@ -38,7 +38,15 @@ bool Segment::operator==(const Segment& other) const
 
 void SegmentHolder::AddSegment(Segment newSegment)
 {
-  // TODO
+  const_iterator unionCandidate = segments.lower_bound({ newSegment.start, newSegment.start });
+  while (unionCandidate != segments.end() && (newSegment & *unionCandidate).IsValid())
+  {
+    newSegment = newSegment | *unionCandidate;
+    segments.erase(unionCandidate++);
+  }
+
+  segments.insert(newSegment);
+  return;
 }
 
 SegmentHolder::const_iterator SegmentHolder::begin() const

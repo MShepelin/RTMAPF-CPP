@@ -37,6 +37,8 @@ private:
   std::set<Segment> segments;
   using const_iterator = std::set<Segment>::const_iterator;
 
+  
+
 public:
   /**
    * If a new segment doesn't intersect with the stored segments
