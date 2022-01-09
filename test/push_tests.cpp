@@ -59,6 +59,17 @@ TEST(SegmentsTests, Union)
   ASSERT_DEATH(g | a, "Assertion failed:.");
 }
 
+TEST(SegmentsTests, Comparison)
+{
+  Segment a{ 2, 3 };
+  Segment c{ 1, 4 };
+  Segment b{ 4, 5 };
+  ASSERT_TRUE(a < b);
+  ASSERT_TRUE(a < c);
+  ASSERT_TRUE(c < b);
+  ASSERT_FALSE(b < a);
+}
+
 TEST(SegmentHolderTests, Addition)
 {
   SegmentHolder segments;
