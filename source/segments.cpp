@@ -92,3 +92,8 @@ SegmentHolder SegmentHolder::operator&(const SegmentHolder& other) const
 
   return newHolder;
 }
+
+bool SegmentHolder::operator==(const SegmentHolder& other) const
+{
+  return segments == other.segments;
+}

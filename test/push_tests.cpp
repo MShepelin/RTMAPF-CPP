@@ -1,6 +1,7 @@
 #include "space.h"
 #include "segments.h"
 #include <fstream>
+#include <sstream>
 #include <gtest/gtest.h>
 
 TEST(SpaceTests, Construction)
@@ -133,6 +134,60 @@ TEST(SegmentHolderTests, SegmentsAdditionMixed)
     SegmentHolder segmentsCopy = segments;
     SegmentsAdditionWithCheck(segmentsCopy, answer, input);
   }
+}
+
+void ReadSegments(std::istream& input, SegmentHolder& segments)
+{
+  size_t nSegments = 0;
+  input >> nSegments;
+  ASSERT_FALSE(input.fail());
+  ASSERT_EQ(nSegments % 2, 0);
+
+  for (size_t i = 0; i < nSegments / 2; ++i)
+  {
+    Time start, end;
+    input >> start >> end;
+    segments.AddSegment({ start, end });
+  }
+}
+
+void IntersectSegments(std::istream& input)
+{
+  while (!input.eof())
+  {
+    SegmentHolder firstSegment;
+    ReadSegments(input, firstSegment);
+
+    SegmentHolder secondSegment;
+    ReadSegments(input, secondSegment);
+
+    SegmentHolder answer;
+    ReadSegments(input, answer);
+
+    ASSERT_EQ(firstSegment & secondSegment, answer);
+  }
+}
+
+TEST(SegmentHolderTests, Intersection)
+{
+  std::stringstream input(\
+    "8 0 2 4 6 8 10 13 14\n"\
+    "4 3 5 8 12\n"\
+    "4 4 5 8 10\n"\
+    \
+    "8 0 8 13 14 15 16 17 20\n"\
+    "8 2 10 12 18 19 21 22 23\n"\
+    "10 2 8 13 14 15 16 17 18 19 20\n"\
+    \
+    "4 1 2 3 4\n"\
+    "6 4 5 6 7 8 9\n"\
+    "2 4 4\n"
+    \
+    "2 1 10\n"\
+    "12 2 3 4 5 6 7 8 9 11 12 13 14\n"\
+    "8 2 3 4 5 6 7 8 9");
+
+  IntersectSegments(input);
 }
 
 int main(int argc, char* argv[])

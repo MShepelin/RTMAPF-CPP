@@ -49,4 +49,6 @@ public:
   const_iterator begin() const;
 
   const_iterator end() const;
+
+  bool operator==(const SegmentHolder& other) const;
 };

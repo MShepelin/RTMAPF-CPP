@@ -23,16 +23,5 @@ int main()
 {
   std::set<int> nums = { 1, 2, 3, 4 };
 
-  auto it = ++nums.begin();
-  while (nums.size() > 1)
-  {
-    nums.erase(it++);
-    for (auto o : nums)
-    {
-      std::cout << o << " ";
-    }
-    std::cout << "\n";
-  }
-
   return 0;
 }
