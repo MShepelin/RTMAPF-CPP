@@ -58,3 +58,37 @@ SegmentHolder::const_iterator SegmentHolder::end() const
 {
   return segments.end();
 }
+
+SegmentHolder SegmentHolder::operator&(const SegmentHolder& other) const
+{
+  SegmentHolder newHolder;
+
+  const_iterator selfSegment = begin();
+  if (selfSegment == end())
+  {
+    return newHolder;
+  }
+
+  const_iterator otherSegment = other.segments.lower_bound({ selfSegment->start,  selfSegment->start });
+
+  while (otherSegment != other.end() && selfSegment != end())
+  {
+    Segment newSegment = *selfSegment & *otherSegment;
+
+    if (newSegment.IsValid())
+    {
+      newHolder.AddSegment(newSegment);
+    }
+
+    if (otherSegment->end > selfSegment->end)
+    {
+      selfSegment++;
+    }
+    else
+    {
+      otherSegment++;
+    }
+  }
+
+  return newHolder;
+}
