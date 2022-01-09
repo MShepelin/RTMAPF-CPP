@@ -89,36 +89,50 @@ void SegmentsAdditionWithCheck(SegmentHolder& segments, const std::vector<Segmen
 
 TEST(SegmentHolderTests, SeparateSegmentsAddition)
 {
-  SegmentHolder segments;
   std::vector<Segment> answer = { {0, 2}, {3, 4}, {5, 6} };
-  SegmentsAdditionWithCheck(segments, answer, answer);
 
-  SegmentHolder segments1;
-  std::vector<Segment> input1 = { {5, 6}, {3, 4}, {0, 2} };
-  SegmentsAdditionWithCheck(segments1, answer, input1);
-
-  SegmentHolder segments2;
-  std::vector<Segment> input2 = { {5, 6}, {0, 2}, {3, 4}};
-  SegmentsAdditionWithCheck(segments2, answer, input2);
+  for (std::vector<Segment> input : std::vector<std::vector<Segment>>{
+    { {0, 2}, {3, 4}, {5, 6} },
+    { {5, 6}, {3, 4}, {0, 2} },
+    { {5, 6}, {0, 2}, {3, 4} } })
+  {
+    SegmentHolder segments;
+    SegmentsAdditionWithCheck(segments, answer, input);
+  }
 }
 
 TEST(SegmentHolderTests, IntersectingSegmentsAddition)
 {
   SegmentHolder segments;
-  std::vector<Segment> input = { {0, 2}, {3, 4}, {5, 8} };
-  SegmentsAdditionWithCheck(segments, input, input);
+  std::vector<Segment> initInput = { {0, 2}, {3, 4}, {5, 8} };
+  SegmentsAdditionWithCheck(segments, initInput, initInput);
 
-  SegmentHolder lastElementInsertion = segments;
-  std::vector<Segment> lastElementInsertionAnswer = { {0, 2}, {3, 4}, {5, 10} };
-  SegmentsAdditionWithCheck(lastElementInsertion, lastElementInsertionAnswer, { { 6, 10 } });
+  for (auto [answer, input] : std::vector<std::pair<std::vector<Segment>, std::vector<Segment>>>{
+      { {{0, 2}, {3, 4}, {5, 10} }, { {   6, 10  } } },
+      { {{-5, 2}, {3, 4}, {5, 8} }, { {  -5, 1   } } },
+      { {{0, 2}, {3, 4.5}, {5, 8}}, { { 3.5, 4.5 } } }
+    })
+  {
+    SegmentHolder segmentsCopy = segments;
+    SegmentsAdditionWithCheck(segmentsCopy, answer, input);
+  }
+}
 
-  SegmentHolder firstElementInsertion = segments;
-  std::vector<Segment> firstElementInsertionAnswer = { {-5, 2}, {3, 4}, {5, 8} };
-  SegmentsAdditionWithCheck(firstElementInsertion, firstElementInsertionAnswer, { { -5, 1 } });
+TEST(SegmentHolderTests, SegmentsAdditionMixed)
+{
+  SegmentHolder segments;
+  std::vector<Segment> initInput = { {0, 2}, {4, 6}, {8, 10}, {12, 14} };
+  SegmentsAdditionWithCheck(segments, initInput, initInput);
 
-  SegmentHolder middleInsertion = segments;
-  std::vector<Segment> middleInsertionAnswer = { {0, 2}, {3, 4.5}, {5, 8} };
-  SegmentsAdditionWithCheck(middleInsertion, middleInsertionAnswer, { { 3.5, 4.5 } });
+  for (auto [answer, input] : std::vector<std::pair<std::vector<Segment>, std::vector<Segment>>>{
+      { {{0, 6}, {7, 15} }, {  {7, 15}, {1, 5} } },
+      { {{-5, 2}, {4, 14}, {16, 20} }, { {16, 20}, {-5, 1}, {6, 12} } },
+      { {{-20, 20} }, { {-3, 3}, {-20, 20}, {4, 8} } }
+    })
+  {
+    SegmentHolder segmentsCopy = segments;
+    SegmentsAdditionWithCheck(segmentsCopy, answer, input);
+  }
 }
 
 int main(int argc, char* argv[])
