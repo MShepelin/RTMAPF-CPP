@@ -6,7 +6,7 @@
 Space::Space(uint32_t inWidth, uint32_t inHeight)
   : width(inWidth)
   , height(inHeight)
-  , grid(inWidth * inHeight)
+  , grid((size_t) inWidth * inHeight)
 {
 }
 
@@ -17,7 +17,7 @@ Access Space::GetAccess(Point point) const
 
 size_t Space::PointToIndex(Point& point) const
 {
-  size_t index = point.x + point.y * width;
+  size_t index = point.x + (size_t) point.y * width;
   assert(index < grid.size());
   return index;
 }
@@ -27,12 +27,21 @@ void Space::SetAccess(Point point, Access newAccess)
   grid[PointToIndex(point)] = newAccess;
 }
 
+uint32_t Space::GetWidth() const
+{
+  return width;
+}
+
+uint32_t Space::GetHeight() const
+{
+  return height;
+}
+
 SpaceReader::SpaceReader()
   : symbolToAccess({ 
     {'@', INACCESSABLE}, 
     {'.', ACCESSABLE} })
 {
-
 }
 
 std::optional<Space> SpaceReader::FromHogFormat(std::istream& file)
@@ -40,6 +49,7 @@ std::optional<Space> SpaceReader::FromHogFormat(std::istream& file)
   uint32_t width = 0, height = 0;
 
   if (!CheckHogFileStart(file, width, height)) return {};
+  file.ignore(2, '\n');
 
   Space readSpace(width, height);
 
@@ -58,7 +68,7 @@ std::optional<Space> SpaceReader::FromHogFormat(std::istream& file)
       readSpace.SetAccess(Point{ column, row }, newAccess);
     }
 
-    file.ignore('\n');
+    file.ignore(2, '\n');
   }
 
   return std::move(readSpace);

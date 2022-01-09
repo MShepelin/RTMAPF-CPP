@@ -19,12 +19,13 @@ private:
 
 public:
   Space() = delete;
-
   Space(uint32_t inWidth, uint32_t inHeight);
 
   Access GetAccess(Point point) const;
-
   void SetAccess(Point point, Access newAccess);
+
+  uint32_t GetWidth() const;
+  uint32_t GetHeight() const;
 };
 
 class SpaceReader

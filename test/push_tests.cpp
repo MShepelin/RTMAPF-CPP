@@ -12,11 +12,23 @@ TEST(Baseline, CheckSum)
 TEST(Baseline, ReadHogFormatMap)
 {
   SpaceReader reader;
-  std::ifstream file(TEST_DATA_PATH "/Berlin_1_256.map");
+  std::ifstream file(TEST_DATA_PATH "/chess_like.map");
   ASSERT_TRUE(file.is_open());
 
   std::optional<Space> space = reader.FromHogFormat(file);
   ASSERT_TRUE(space.has_value());
+
+  uint32_t squareSize = 4;
+  for (uint32_t i = 0; i < squareSize; ++i)
+  {
+    for (uint32_t j = 0; j < squareSize; ++j)
+    {
+      // Conversation from location to Access
+      Access correctAccess = (i + j + 1) % 2;
+      Point point{ i, j };
+      ASSERT_EQ(space.value().GetAccess(point), correctAccess);
+    }
+  }
 }
 
 int main(int argc, char* argv[])
