@@ -20,3 +20,18 @@ bool Segment::operator<(const Segment& other) const
   assert(IsValid() && other.IsValid());
   return start < other.start;
 }
+
+Segment Segment::operator|(const Segment& other) const
+{
+  assert(operator&(other).IsValid());
+
+  Time newStart = std::min(start, other.start);
+  Time newEnd = std::max(end, other.end);
+
+  return Segment{ newStart, newEnd };
+}
+
+void SegmentHolder::AddSegment(Segment newSegment)
+{
+  // TODO
+}
