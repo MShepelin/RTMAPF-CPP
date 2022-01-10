@@ -6,8 +6,17 @@
 #include <optional>
 #include <unordered_map>
 
-
 class Space
+{
+public:
+  virtual Access GetAccess(Point point) const = 0;
+  virtual void SetAccess(Point point, Access newAccess) = 0;
+  virtual bool Contains(Point point) const = 0;
+
+  virtual ~Space() {};
+};
+
+class RawSpace : public Space
 {
 private:
   std::vector<Access> grid;
@@ -18,14 +27,16 @@ private:
   inline size_t PointToIndex(Point& point) const;
 
 public:
-  Space() = delete;
-  Space(uint32_t inWidth, uint32_t inHeight);
+  RawSpace() = delete;
+  RawSpace(uint32_t inWidth, uint32_t inHeight);
 
-  Access GetAccess(Point point) const;
-  void SetAccess(Point point, Access newAccess);
+  Access GetAccess(Point point) const override;
+  void SetAccess(Point point, Access newAccess) override;
 
   uint32_t GetWidth() const;
   uint32_t GetHeight() const;
+
+  bool Contains(Point point) const override;
 };
 
 class SpaceReader
@@ -38,5 +49,5 @@ private:
 public:
   SpaceReader();
 
-  std::optional<Space> FromHogFormat(std::istream& file);
+  std::optional<RawSpace> FromHogFormat(std::istream& file);
 };

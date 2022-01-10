@@ -52,3 +52,9 @@ public:
 
   bool operator==(const SegmentHolder& other) const;
 };
+
+class Area
+{
+  Point point;
+  Segment interval;
+};

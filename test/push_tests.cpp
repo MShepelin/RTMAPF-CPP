@@ -6,9 +6,11 @@
 
 TEST(SpaceTests, Construction)
 {
-  Space space(3, 3);
+  RawSpace space(3, 3);
   space.SetAccess({ 2, 2 }, INACCESSABLE);
   ASSERT_EQ(space.GetAccess({ 2, 2 }), INACCESSABLE);
+  ASSERT_EQ(space.GetHeight(), 3);
+  ASSERT_EQ(space.GetWidth(), 3);
 }
 
 TEST(SpaceTests, ReadHogFormat)
@@ -17,10 +19,12 @@ TEST(SpaceTests, ReadHogFormat)
   std::ifstream file(TEST_DATA_PATH "/chess_like.map");
   ASSERT_TRUE(file.is_open());
 
-  std::optional<Space> space = reader.FromHogFormat(file);
+  std::optional<RawSpace> space = reader.FromHogFormat(file);
   ASSERT_TRUE(space.has_value());
 
   uint32_t squareSize = 4;
+  ASSERT_EQ(space.value().GetHeight(), 4);
+  ASSERT_EQ(space.value().GetWidth(), 4);
   for (uint32_t i = 0; i < squareSize; ++i)
   {
     for (uint32_t j = 0; j < squareSize; ++j)

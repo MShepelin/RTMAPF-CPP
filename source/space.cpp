@@ -3,38 +3,44 @@
 #include <iostream>
 #include <string>
 
-Space::Space(uint32_t inWidth, uint32_t inHeight)
+RawSpace::RawSpace(uint32_t inWidth, uint32_t inHeight)
   : width(inWidth)
   , height(inHeight)
   , grid((size_t) inWidth * inHeight)
 {
 }
 
-Access Space::GetAccess(Point point) const
+Access RawSpace::GetAccess(Point point) const
 {
   return grid[PointToIndex(point)];
 }
 
-size_t Space::PointToIndex(Point& point) const
+size_t RawSpace::PointToIndex(Point& point) const
 {
   size_t index = point.x + (size_t) point.y * width;
   assert(index < grid.size());
   return index;
 }
 
-void Space::SetAccess(Point point, Access newAccess)
+void RawSpace::SetAccess(Point point, Access newAccess)
 {
   grid[PointToIndex(point)] = newAccess;
 }
 
-uint32_t Space::GetWidth() const
+uint32_t RawSpace::GetWidth() const
 {
   return width;
 }
 
-uint32_t Space::GetHeight() const
+uint32_t RawSpace::GetHeight() const
 {
   return height;
+}
+
+bool RawSpace::Contains(Point point) const
+{
+  // TODO incapsulate
+  return point.x < width && point.y < height;
 }
 
 SpaceReader::SpaceReader()
@@ -44,14 +50,14 @@ SpaceReader::SpaceReader()
 {
 }
 
-std::optional<Space> SpaceReader::FromHogFormat(std::istream& file)
+std::optional<RawSpace> SpaceReader::FromHogFormat(std::istream& file)
 {
   uint32_t width = 0, height = 0;
 
   if (!CheckHogFileStart(file, width, height)) return {};
   file.ignore(2, '\n');
 
-  Space readSpace(width, height);
+  RawSpace readSpace(width, height);
 
   char grid_value;
   for (uint32_t row = 0; row < height; ++row)
