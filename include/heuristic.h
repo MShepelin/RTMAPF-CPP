@@ -15,9 +15,9 @@ public:
 
   Heuristic(std::weak_ptr<Space> inSpace);
 
-  virtual Cost GetCost(Area to) const = 0;
+  virtual Time GetCost(Area to) const = 0;
 
-  virtual Cost FindCost(Area to) = 0;
+  virtual Time FindCost(Area to) = 0;
 
   virtual bool IsCostFound(Area to) const = 0;
 

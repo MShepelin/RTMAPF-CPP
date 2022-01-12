@@ -7,9 +7,9 @@ using Access = bool;
 #define ACCESSABLE true
 #define INACCESSABLE false
 
-using Cost = float;
-
 using Time = float;
+
+using Speed = float;
 
 #define START_TIME 0.f
 
