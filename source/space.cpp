@@ -10,19 +10,21 @@ RawSpace::RawSpace(uint32_t inWidth, uint32_t inHeight)
 {
 }
 
-Access RawSpace::GetAccess(Point point) const
+const Access& RawSpace::GetAccess(Point point) const
 {
   return grid[PointToIndex(point)];
 }
 
 size_t RawSpace::PointToIndex(Point& point) const
 {
+  // TODO throw exception?
+
   size_t index = point.x + (size_t) point.y * width;
   assert(index < grid.size());
   return index;
 }
 
-void RawSpace::SetAccess(Point point, Access newAccess)
+void RawSpace::SetAccess(Point point, const Access& newAccess)
 {
   grid[PointToIndex(point)] = newAccess;
 }

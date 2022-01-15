@@ -1,26 +1,29 @@
 #pragma once
 
 #include "search_types.h"
+#include "space.h"
 #include <inttypes.h>
 #include <vector>
 
-using AgentID = uint32_t
+using AgentID = uint32_t;
 
 struct Move
 {
+  Speed speed = 0;
   Point deltaPoint;
 };
 
-struct MovementProperties
+struct Agent
 {
-  Speed speed;
-};
+  // TODO struct -> class, public and private methods
 
-class Agent
-{
   AgentID id;
 
   std::vector<Point> shape;
-  MovementProperties movement;
   std::vector<Move> moves;
 };
+
+namespace AgentOperations
+{
+  static SegmentSpace MakeSpaceFromAgentShape(const SegmentSpace& base, const Agent& agent);
+}

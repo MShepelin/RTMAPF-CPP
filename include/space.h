@@ -2,21 +2,30 @@
 
 #include <vector>
 #include "search_types.h"
+#include "segments.h"
 #include <iostream>
 #include <optional>
 #include <unordered_map>
+#include <stdexcept>
 
+template<class AccessType>
 class Space
 {
 public:
-  virtual Access GetAccess(Point point) const = 0;
-  virtual void SetAccess(Point point, Access newAccess) = 0;
+  virtual const AccessType& GetAccess(Point point) const = 0;
+  virtual void SetAccess(Point point, const AccessType& newAccess) = 0;
   virtual bool Contains(Point point) const = 0;
 
   virtual ~Space() {};
 };
 
-class RawSpace : public Space
+class space_error : public std::runtime_error
+{
+public:
+  explicit space_error(const std::string& what_arg) : std::runtime_error(what_arg) {};
+};
+
+class RawSpace : public Space<Access>
 {
 private:
   std::vector<Access> grid;
@@ -30,8 +39,8 @@ public:
   RawSpace() = delete;
   RawSpace(uint32_t inWidth, uint32_t inHeight);
 
-  Access GetAccess(Point point) const override;
-  void SetAccess(Point point, Access newAccess) override;
+  const Access& GetAccess(Point point) const override;
+  void SetAccess(Point point, const Access& newAccess) override;
 
   uint32_t GetWidth() const;
   uint32_t GetHeight() const;
@@ -50,4 +59,16 @@ public:
   SpaceReader();
 
   std::optional<RawSpace> FromHogFormat(std::istream& file);
+};
+
+class SegmentSpace : public Space<SegmentHolder>
+{
+private:
+  std::unordered_map<Point, SegmentHolder> grid;
+
+public:
+  const SegmentHolder& GetAccess(Point point) const { throw space_error("no implementation"); };
+  void SetAccess(Point point, const SegmentHolder& newAccess) { throw space_error("no implementation"); };
+
+  bool Contains(Point point) const { return false; };
 };

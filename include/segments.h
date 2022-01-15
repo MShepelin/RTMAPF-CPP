@@ -10,6 +10,8 @@
  */
 struct Segment
 {
+  // TODO add accessability?
+
   Time start;
   Time end;
 
