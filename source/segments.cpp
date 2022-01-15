@@ -97,3 +97,15 @@ bool SegmentHolder::operator==(const SegmentHolder& other) const
 {
   return segments == other.segments;
 }
+
+SegmentHolder::SegmentHolder()
+  : segments()
+{
+
+}
+
+SegmentHolder::SegmentHolder(Segment startSegment)
+  : segments({ startSegment })
+{
+
+}

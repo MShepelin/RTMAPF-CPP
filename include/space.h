@@ -64,11 +64,13 @@ public:
 class SegmentSpace : public Space<SegmentHolder>
 {
 private:
-  std::unordered_map<Point, SegmentHolder> grid;
+  std::unordered_map<Point, SegmentHolder> segmentGrid;
 
 public:
-  const SegmentHolder& GetAccess(Point point) const { throw space_error("no implementation"); };
-  void SetAccess(Point point, const SegmentHolder& newAccess) { throw space_error("no implementation"); };
+  SegmentSpace(Time depth, const RawSpace& base);
 
-  bool Contains(Point point) const { return false; };
+  const SegmentHolder& GetAccess(Point point) const;
+  void SetAccess(Point point, const SegmentHolder& newAccess);
+
+  bool Contains(Point point) const;
 };

@@ -1,5 +1,6 @@
 #include "space.h"
 #include "segments.h"
+#include "agent.h"
 #include <fstream>
 #include <sstream>
 #include <gtest/gtest.h>
@@ -7,8 +8,9 @@
 TEST(SpaceTests, Construction)
 {
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, INACCESSABLE);
-  ASSERT_EQ(space.GetAccess({ 2, 2 }), INACCESSABLE);
+  space.SetAccess({ 2, 2 }, ACCESSABLE);
+  ASSERT_EQ(space.GetAccess({ 2, 2 }), ACCESSABLE);
+  ASSERT_EQ(space.GetAccess({ 1, 1 }), INACCESSABLE);
   ASSERT_EQ(space.GetHeight(), 3);
   ASSERT_EQ(space.GetWidth(), 3);
 }
@@ -35,6 +37,26 @@ TEST(SpaceTests, ReadHogFormat)
       ASSERT_EQ(space.value().GetAccess(point), correctAccess);
     }
   }
+}
+
+TEST(SpaceTests, SegmentSpace)
+{
+  Time depth = 3;
+
+  RawSpace space(3, 3);
+  space.SetAccess({ 2, 2 }, ACCESSABLE);
+
+  SegmentSpace test(depth, space);
+
+  ASSERT_TRUE(test.Contains({ 2, 2 }));
+  ASSERT_FALSE(test.Contains({ 1, 1 }));
+
+  Segment ans = Segment{ 0, 3 };
+  ASSERT_EQ(test.GetAccess({ 2, 2 }), ans);
+
+  SegmentHolder newHolder({ -1, 4 });
+  test.SetAccess({ 1, 1 }, newHolder);
+  ASSERT_EQ(test.GetAccess({ 1, 1 }), newHolder);
 }
 
 TEST(SegmentsTests, Intersection)
@@ -192,6 +214,33 @@ TEST(SegmentHolderTests, Intersection)
     "8 2 3 4 5 6 7 8 9");
 
   IntersectSegments(input);
+}
+
+TEST(AgentTest, MakeAgentSpace)
+{
+  // TODO remove simplification
+  Agent agent{ 2 };
+
+  Time depth = 3;
+
+  RawSpace baseSpace(3, 3);
+  baseSpace.SetAccess({ 2, 2 }, ACCESSABLE);
+
+  SegmentSpace space(depth, baseSpace);
+
+  SegmentSpace newSpace = AgentOperations::MakeSpaceFromAgentShape(space, agent);
+
+  for (uint32_t x = 0; x < 4; ++x)
+  {
+    for (uint32_t y = 0; y < 4; ++y)
+    {
+      Point point{ x, y };
+      ASSERT_EQ(newSpace.Contains(point), space.Contains(point));
+      if (!newSpace.Contains(point)) continue;
+
+      ASSERT_EQ(newSpace.GetAccess(point), space.GetAccess(point));
+    }
+  }
 }
 
 int main(int argc, char* argv[])

@@ -25,5 +25,5 @@ struct Agent
 
 namespace AgentOperations
 {
-  static SegmentSpace MakeSpaceFromAgentShape(const SegmentSpace& base, const Agent& agent);
+  SegmentSpace MakeSpaceFromAgentShape(const SegmentSpace& base, const Agent& agent);
 }

@@ -40,6 +40,9 @@ private:
   using const_iterator = std::set<Segment>::const_iterator;
 
 public:
+  SegmentHolder();
+  SegmentHolder(Segment startSegment);
+
   /**
    * If a new segment doesn't intersect with the stored segments
    * the new one will be added. Otherwise, a united segment will be created.

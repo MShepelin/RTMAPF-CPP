@@ -6,7 +6,7 @@
 RawSpace::RawSpace(uint32_t inWidth, uint32_t inHeight)
   : width(inWidth)
   , height(inHeight)
-  , grid((size_t) inWidth * inHeight)
+  , grid((size_t) inWidth * inHeight, INACCESSABLE)
 {
 }
 
@@ -115,4 +115,37 @@ bool SpaceReader::CheckHogFileStart(std::istream& file, uint32_t& width, uint32_
   }
 
   return true;
+}
+
+const SegmentHolder& SegmentSpace::GetAccess(Point point) const
+{
+  return segmentGrid.at(point);
+}
+
+void SegmentSpace::SetAccess(Point point, const SegmentHolder & newAccess)
+{ 
+  segmentGrid[point] = newAccess;
+}
+
+bool SegmentSpace::Contains(Point point) const
+{
+  return segmentGrid.count(point) > 0;
+}
+
+SegmentSpace::SegmentSpace(Time depth, const RawSpace& base)
+{
+  assert(depth > 0);
+
+  for (uint32_t x = 0; x < base.GetWidth(); ++x)
+  {
+    for (uint32_t y = 0; y < base.GetHeight(); ++y)
+    {
+      Point point = { x, y };
+
+      if (base.GetAccess(point) == ACCESSABLE)
+      {
+        segmentGrid[point] = SegmentHolder(Segment{0, depth});
+      }
+    }
+  }
 }
