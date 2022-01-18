@@ -73,4 +73,6 @@ public:
   void SetAccess(Point point, const SegmentHolder& newAccess);
 
   bool Contains(Point point) const;
+
+  void MakeAreasInaccessable(const std::vector<Area>& areas);
 };

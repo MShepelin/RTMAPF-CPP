@@ -149,3 +149,19 @@ SegmentSpace::SegmentSpace(Time depth, const RawSpace& base)
     }
   }
 }
+
+void SegmentSpace::MakeAreasInaccessable(const std::vector<Area>& areas)
+{
+  for (const Area& area : areas)
+  {
+    if (!Contains(area.point))
+    {
+      continue;
+    }
+
+    segmentGrid[area.point].RemoveSegment(area.interval);
+
+    // If segment holder becomes empty, it is still contained inside the SegmentSpace,
+    // because in future it may be needed to add accessable intervals there
+  }
+}

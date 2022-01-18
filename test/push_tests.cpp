@@ -39,7 +39,7 @@ TEST(SpaceTests, ReadHogFormat)
   }
 }
 
-TEST(SpaceTests, SegmentSpace)
+TEST(SpaceTests, SegmentSpaceConstruction)
 {
   Time depth = 3;
 
@@ -57,6 +57,36 @@ TEST(SpaceTests, SegmentSpace)
   SegmentHolder newHolder({ -1, 4 });
   test.SetAccess({ 1, 1 }, newHolder);
   ASSERT_EQ(test.GetAccess({ 1, 1 }), newHolder);
+}
+
+TEST(SpaceTests, MakeAreasInaccessable)
+{
+  Time depth = 3;
+  RawSpace space(3, 3);
+  space.SetAccess({ 2, 2 }, ACCESSABLE);
+  space.SetAccess({ 0, 0 }, ACCESSABLE);
+  SegmentSpace test(depth, space);
+
+  std::vector<Area> removeAreas = { 
+    Area{{0, 0}, {1, 2}}, 
+    Area{{2, 2}, {2, 5}},
+    Area{{1, 1}, {1, 2}} 
+  };
+  test.MakeAreasInaccessable(removeAreas);
+
+  SegmentHolder result1;
+  result1.AddSegment({ 0, 1 });
+  result1.AddSegment({ 2, 3 });
+
+  SegmentHolder result2;
+  result2.AddSegment({ 0, 2 });
+
+  ASSERT_TRUE(test.Contains({ 2, 2 }));
+  ASSERT_TRUE(test.Contains({ 0, 0 }));
+  ASSERT_FALSE(test.Contains({ 1, 1 }));
+
+  ASSERT_EQ(test.GetAccess({ 0, 0 }), result1);
+  ASSERT_EQ(test.GetAccess({ 2, 2 }), result2);
 }
 
 TEST(SegmentsTests, Intersection)

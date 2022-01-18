@@ -62,7 +62,7 @@ public:
   bool operator==(const SegmentHolder& other) const;
 };
 
-class Area
+struct Area
 {
   Point point;
   Segment interval;
