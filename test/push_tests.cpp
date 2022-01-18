@@ -3,6 +3,7 @@
 #include "agent.h"
 #include <fstream>
 #include <sstream>
+#include "nodes_heap.h"
 #include <gtest/gtest.h>
 
 TEST(SpaceTests, Construction)
@@ -376,6 +377,37 @@ TEST(AgentTest, MakeAgentSpace)
     }
   }
 }
+
+TEST(NodesBinaryHeap, CheckTies)
+{
+  NodesBinaryHeap<int> heap(true);
+  std::vector<Node<int>> check = {
+      { 8, 10, 5 },
+      { 3, 3, 3 },
+      { 6, 0, 8 },
+      { 1, 3, 2 },
+      { 0, 1, 0 },
+      { 2, 2, 3 },
+      { 9, 5, 10 },
+      { 7, 9, 1 },
+      { 5, 4, 4 },
+      { 4, 5, 3 }
+  };
+
+  for (auto& i : check)
+  {
+    heap.Insert(i);
+  }
+
+  int counter = 0;
+  while (heap.Size())
+  {
+    Node<int>* node = heap.PopMin();
+    EXPECT_EQ(node->cell, counter);
+    counter++;
+  }
+}
+
 
 int main(int argc, char* argv[])
 {
