@@ -63,7 +63,7 @@ public:
 
 class SegmentSpace : public Space<SegmentHolder>
 {
-private:
+protected:
   std::unordered_map<Point, SegmentHolder> segmentGrid;
 
 public:
@@ -75,4 +75,22 @@ public:
   bool Contains(Point point) const;
 
   void MakeAreasInaccessable(const std::vector<Area>& areas);
+};
+
+/**
+ * Space that holds time segments limited by [0, depth]
+ */
+class SpaceTime : public SegmentSpace
+{
+private:
+  Time depth;
+
+public:
+  SpaceTime(Time depth, const RawSpace& base);
+
+  void MoveTime(Time deltaTime);
+
+  Time GetDepth() const;
+
+  // TODO override SetAccess to limit time by [0, depth]
 };

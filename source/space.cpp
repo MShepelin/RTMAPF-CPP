@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 RawSpace::RawSpace(uint32_t inWidth, uint32_t inHeight)
   : width(inWidth)
@@ -163,5 +164,29 @@ void SegmentSpace::MakeAreasInaccessable(const std::vector<Area>& areas)
 
     // If segment holder becomes empty, it is still contained inside the SegmentSpace,
     // because in future it may be needed to add accessable intervals there
+  }
+}
+
+SpaceTime::SpaceTime(Time inDepth, const RawSpace& base)
+  : SegmentSpace(inDepth, base)\
+  , depth(inDepth)
+{
+
+}
+
+Time SpaceTime::GetDepth() const
+{
+  return depth;
+}
+
+void SpaceTime::MoveTime(Time deltaTime)
+{
+  assert(deltaTime >= 0);
+
+  for (auto& [point, segment] : segmentGrid)
+  {
+    segment -= deltaTime;
+    segment.RemoveSegment( {-deltaTime, 0} );
+    segment.AddSegment({std::max(0.f, depth - deltaTime), depth});
   }
 }

@@ -89,6 +89,33 @@ TEST(SpaceTests, MakeAreasInaccessable)
   ASSERT_EQ(test.GetAccess({ 2, 2 }), result2);
 }
 
+TEST(SpaceTimeTests, MoveTime)
+{
+  Time depth = 3;
+  RawSpace space(3, 3);
+  space.SetAccess({ 2, 2 }, ACCESSABLE);
+  space.SetAccess({ 0, 0 }, ACCESSABLE);
+  SpaceTime spaceTime(depth, space);
+
+  std::vector<Area> removeAreas = {
+    Area{{0, 0}, {1, 2}},
+    Area{{2, 2}, {2, 5}},
+    Area{{1, 1}, {1, 2}}
+  };
+  spaceTime.MakeAreasInaccessable(removeAreas);
+
+  spaceTime.MoveTime(2);
+
+  SegmentHolder result1;
+  result1.AddSegment({ 0, 3 });
+
+  SegmentHolder result2;
+  result2.AddSegment({ 1, 3 });
+
+  ASSERT_EQ(spaceTime.GetAccess({ 0, 0 }), result1);
+  ASSERT_EQ(spaceTime.GetAccess({ 2, 2 }), result2);
+}
+
 TEST(SegmentsTests, Intersection)
 {
   Segment b{ 0, 10 };
