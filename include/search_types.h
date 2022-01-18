@@ -57,3 +57,36 @@ struct Point
 MAKE_HASHABLE(Point, type.x, type.y);
 
 using Shape = std::vector<Point>;
+
+template<typename CellType>
+struct Node
+{
+  CellType cell;
+  // If heursticToGoal < 0 the node is in a "close" list, else it's in an "open" list
+  // If minTime < 0 the node is currently inaccessable, 
+  // else minTime = current min time to reach the node
+  Time  minTime, heursticToGoal;
+  size_t heapIndex;
+  Node<CellType>* parent;
+
+  Node(CellType inCell)
+    : cell(inCell)
+    , minTime(0)
+    , heursticToGoal(-1)
+    , parent(nullptr)
+  { }
+
+  Node(CellType inCell, Time inMinTime, Time inHeuristic = -1)
+    : cell(inCell)
+    , minTime(inMinTime)
+    , heursticToGoal(inHeuristic)
+    , parent(nullptr)
+  { }
+
+  Node()
+    : cell()
+    , minTime(-1)
+    , heursticToGoal(-1)
+    , parent(nullptr)
+  { }
+};

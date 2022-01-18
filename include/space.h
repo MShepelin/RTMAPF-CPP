@@ -8,13 +8,13 @@
 #include <unordered_map>
 #include <stdexcept>
 
-template<class AccessType>
+template<class AccessType, class CellType>
 class Space
 {
 public:
-  virtual const AccessType& GetAccess(Point point) const = 0;
-  virtual void SetAccess(Point point, const AccessType& newAccess) = 0;
-  virtual bool Contains(Point point) const = 0;
+  virtual const AccessType& GetAccess(CellType cell) const = 0;
+  virtual void SetAccess(CellType cell, const AccessType& newAccess) = 0;
+  virtual bool Contains(CellType cell) const = 0;
 
   virtual ~Space() {};
 };
@@ -25,7 +25,7 @@ public:
   explicit space_error(const std::string& what_arg) : std::runtime_error(what_arg) {};
 };
 
-class RawSpace : public Space<Access>
+class RawSpace : public Space<Access, Point>
 {
 private:
   std::vector<Access> grid;
@@ -61,7 +61,7 @@ public:
   std::optional<RawSpace> FromHogFormat(std::istream& file);
 };
 
-class SegmentSpace : public Space<SegmentHolder>
+class SegmentSpace : public Space<SegmentHolder, Point>
 {
 protected:
   std::unordered_map<Point, SegmentHolder> segmentGrid;
