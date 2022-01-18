@@ -150,3 +150,18 @@ SegmentHolder::SegmentHolder(Segment startSegment)
 {
 
 }
+
+void SegmentHolder::operator-=(Time deltaTime)
+{
+  std::set<Segment> newSegments;
+
+  for (const_iterator iterator = begin(); iterator != end(); ++iterator)
+  {
+    Segment newSegment = *iterator;
+    newSegment.end -= deltaTime;
+    newSegment.start -= deltaTime;
+    newSegments.insert(newSegment);
+  }
+
+  segments = newSegments;
+}

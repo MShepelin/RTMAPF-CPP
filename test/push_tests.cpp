@@ -304,6 +304,25 @@ TEST(SegmentHolderTests, SegmentRemoval)
   RemoveSegmentTest(input);
 }
 
+TEST(SegmentHolderTests, Reduction)
+{
+  SegmentHolder segments;
+  segments.AddSegment({ 2, 3 });
+  segments.AddSegment({ -1, 1 });
+  segments.AddSegment({ 4, 5 });
+  segments.AddSegment({ 6, 8 });
+
+  segments -= 3;
+
+  SegmentHolder answer;
+  answer.AddSegment({ -1, 0 });
+  answer.AddSegment({ -4, -2 });
+  answer.AddSegment({ 1, 2 });
+  answer.AddSegment({ 3, 5 });
+
+  ASSERT_EQ(segments, answer);
+}
+
 TEST(AgentTest, MakeAgentSpace)
 {
   // TODO remove simplification

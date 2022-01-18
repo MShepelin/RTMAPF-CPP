@@ -60,6 +60,8 @@ public:
   const_iterator end() const;
 
   bool operator==(const SegmentHolder& other) const;
+
+  void operator-=(Time deltaTime);
 };
 
 struct Area
