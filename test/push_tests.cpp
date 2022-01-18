@@ -1,14 +1,18 @@
 #include "space.h"
 #include "segments.h"
+#include "agent.h"
 #include <fstream>
 #include <sstream>
 #include <gtest/gtest.h>
 
 TEST(SpaceTests, Construction)
 {
-  Space space(3, 3);
-  space.SetAccess({ 2, 2 }, INACCESSABLE);
-  ASSERT_EQ(space.GetAccess({ 2, 2 }), INACCESSABLE);
+  RawSpace space(3, 3);
+  space.SetAccess({ 2, 2 }, ACCESSABLE);
+  ASSERT_EQ(space.GetAccess({ 2, 2 }), ACCESSABLE);
+  ASSERT_EQ(space.GetAccess({ 1, 1 }), INACCESSABLE);
+  ASSERT_EQ(space.GetHeight(), 3);
+  ASSERT_EQ(space.GetWidth(), 3);
 }
 
 TEST(SpaceTests, ReadHogFormat)
@@ -17,10 +21,12 @@ TEST(SpaceTests, ReadHogFormat)
   std::ifstream file(TEST_DATA_PATH "/chess_like.map");
   ASSERT_TRUE(file.is_open());
 
-  std::optional<Space> space = reader.FromHogFormat(file);
+  std::optional<RawSpace> space = reader.FromHogFormat(file);
   ASSERT_TRUE(space.has_value());
 
   uint32_t squareSize = 4;
+  ASSERT_EQ(space.value().GetHeight(), 4);
+  ASSERT_EQ(space.value().GetWidth(), 4);
   for (uint32_t i = 0; i < squareSize; ++i)
   {
     for (uint32_t j = 0; j < squareSize; ++j)
@@ -31,6 +37,83 @@ TEST(SpaceTests, ReadHogFormat)
       ASSERT_EQ(space.value().GetAccess(point), correctAccess);
     }
   }
+}
+
+TEST(SpaceTests, SegmentSpaceConstruction)
+{
+  Time depth = 3;
+
+  RawSpace space(3, 3);
+  space.SetAccess({ 2, 2 }, ACCESSABLE);
+
+  SegmentSpace test(depth, space);
+
+  ASSERT_TRUE(test.Contains({ 2, 2 }));
+  ASSERT_FALSE(test.Contains({ 1, 1 }));
+
+  Segment ans = Segment{ 0, 3 };
+  ASSERT_EQ(test.GetAccess({ 2, 2 }), ans);
+
+  SegmentHolder newHolder({ -1, 4 });
+  test.SetAccess({ 1, 1 }, newHolder);
+  ASSERT_EQ(test.GetAccess({ 1, 1 }), newHolder);
+}
+
+TEST(SpaceTests, MakeAreasInaccessable)
+{
+  Time depth = 3;
+  RawSpace space(3, 3);
+  space.SetAccess({ 2, 2 }, ACCESSABLE);
+  space.SetAccess({ 0, 0 }, ACCESSABLE);
+  SegmentSpace test(depth, space);
+
+  std::vector<Area> removeAreas = { 
+    Area{{0, 0}, {1, 2}}, 
+    Area{{2, 2}, {2, 5}},
+    Area{{1, 1}, {1, 2}} 
+  };
+  test.MakeAreasInaccessable(removeAreas);
+
+  SegmentHolder result1;
+  result1.AddSegment({ 0, 1 });
+  result1.AddSegment({ 2, 3 });
+
+  SegmentHolder result2;
+  result2.AddSegment({ 0, 2 });
+
+  ASSERT_TRUE(test.Contains({ 2, 2 }));
+  ASSERT_TRUE(test.Contains({ 0, 0 }));
+  ASSERT_FALSE(test.Contains({ 1, 1 }));
+
+  ASSERT_EQ(test.GetAccess({ 0, 0 }), result1);
+  ASSERT_EQ(test.GetAccess({ 2, 2 }), result2);
+}
+
+TEST(SpaceTimeTests, MoveTime)
+{
+  Time depth = 3;
+  RawSpace space(3, 3);
+  space.SetAccess({ 2, 2 }, ACCESSABLE);
+  space.SetAccess({ 0, 0 }, ACCESSABLE);
+  SpaceTime spaceTime(depth, space);
+
+  std::vector<Area> removeAreas = {
+    Area{{0, 0}, {1, 2}},
+    Area{{2, 2}, {2, 5}},
+    Area{{1, 1}, {1, 2}}
+  };
+  spaceTime.MakeAreasInaccessable(removeAreas);
+
+  spaceTime.MoveTime(2);
+
+  SegmentHolder result1;
+  result1.AddSegment({ 0, 3 });
+
+  SegmentHolder result2;
+  result2.AddSegment({ 1, 3 });
+
+  ASSERT_EQ(spaceTime.GetAccess({ 0, 0 }), result1);
+  ASSERT_EQ(spaceTime.GetAccess({ 2, 2 }), result2);
 }
 
 TEST(SegmentsTests, Intersection)
@@ -69,6 +152,27 @@ TEST(SegmentsTests, Comparison)
   ASSERT_TRUE(a < c);
   ASSERT_TRUE(c < b);
   ASSERT_FALSE(b < a);
+}
+
+TEST(SegmentsTests, Substraction)
+{
+  Segment a{ 2, 5 };
+  Segment b{ 3, 4 };
+  Segment c{ 1, 3 };
+  Segment d{ 4, 8 };
+
+  std::vector<Segment> res = { {2, 3}, {4, 5} };
+  ASSERT_EQ(a - b, res);
+  ASSERT_EQ((b - a).size(), 0);
+
+  std::vector<Segment> res2 = { { 3, 5 } };
+  ASSERT_EQ(a - c, res2);
+
+  std::vector<Segment> res3 = { { 1, 2 } };
+  ASSERT_EQ(c - a, res3);
+
+  ASSERT_EQ(b - d, std::vector<Segment>{ b });
+  ASSERT_EQ(c - Segment::Invalid(), std::vector<Segment>{ c });
 }
 
 void SegmentsAdditionWithCheck(SegmentHolder& segments, const std::vector<Segment>& answer, const std::vector<Segment>& input)
@@ -155,16 +259,16 @@ void IntersectSegments(std::istream& input)
 {
   while (!input.eof())
   {
-    SegmentHolder firstSegment;
-    ReadSegments(input, firstSegment);
+    SegmentHolder firstSegmentHolder;
+    ReadSegments(input, firstSegmentHolder);
 
-    SegmentHolder secondSegment;
-    ReadSegments(input, secondSegment);
+    SegmentHolder secondSegmentHolder;
+    ReadSegments(input, secondSegmentHolder);
 
     SegmentHolder answer;
     ReadSegments(input, answer);
 
-    ASSERT_EQ(firstSegment & secondSegment, answer);
+    ASSERT_EQ(firstSegmentHolder & secondSegmentHolder, answer);
   }
 }
 
@@ -188,6 +292,89 @@ TEST(SegmentHolderTests, Intersection)
     "8 2 3 4 5 6 7 8 9");
 
   IntersectSegments(input);
+}
+
+void RemoveSegmentTest(std::istream& input)
+{
+  while (!input.eof())
+  {
+    SegmentHolder firstSegmentHolder;
+    ReadSegments(input, firstSegmentHolder);
+
+    Time start, end;
+    input >> start >> end;
+    Segment removal{ start, end };
+
+    SegmentHolder answer;
+    ReadSegments(input, answer);
+
+    firstSegmentHolder.RemoveSegment(removal);
+    ASSERT_EQ(firstSegmentHolder, answer);
+  }
+}
+
+TEST(SegmentHolderTests, SegmentRemoval)
+{
+  std::stringstream input(\
+    "6 2 3 4 5 6 7\n"\
+    "0 1\n"\
+    "6 2 3 4 5 6 7\n"\
+    \
+    "6 2 3 4 5 6 7\n"\
+    "8 9\n"\
+    "6 2 3 4 5 6 7\n"\
+    \
+    "6 0 2 3 4 5 7\n"\
+    "1 6\n"\
+    "4 0 1 6 7");
+
+  RemoveSegmentTest(input);
+}
+
+TEST(SegmentHolderTests, Reduction)
+{
+  SegmentHolder segments;
+  segments.AddSegment({ 2, 3 });
+  segments.AddSegment({ -1, 1 });
+  segments.AddSegment({ 4, 5 });
+  segments.AddSegment({ 6, 8 });
+
+  segments -= 3;
+
+  SegmentHolder answer;
+  answer.AddSegment({ -1, 0 });
+  answer.AddSegment({ -4, -2 });
+  answer.AddSegment({ 1, 2 });
+  answer.AddSegment({ 3, 5 });
+
+  ASSERT_EQ(segments, answer);
+}
+
+TEST(AgentTest, MakeAgentSpace)
+{
+  // TODO remove simplification
+  Agent agent{ 2 };
+
+  Time depth = 3;
+
+  RawSpace baseSpace(3, 3);
+  baseSpace.SetAccess({ 2, 2 }, ACCESSABLE);
+
+  SegmentSpace space(depth, baseSpace);
+
+  SegmentSpace newSpace = AgentOperations::MakeSpaceFromAgentShape(space, agent);
+
+  for (uint32_t x = 0; x < 4; ++x)
+  {
+    for (uint32_t y = 0; y < 4; ++y)
+    {
+      Point point{ x, y };
+      ASSERT_EQ(newSpace.Contains(point), space.Contains(point));
+      if (!newSpace.Contains(point)) continue;
+
+      ASSERT_EQ(newSpace.GetAccess(point), space.GetAccess(point));
+    }
+  }
 }
 
 int main(int argc, char* argv[])

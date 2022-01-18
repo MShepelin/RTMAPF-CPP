@@ -2,39 +2,48 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <algorithm>
 
-Space::Space(uint32_t inWidth, uint32_t inHeight)
+RawSpace::RawSpace(uint32_t inWidth, uint32_t inHeight)
   : width(inWidth)
   , height(inHeight)
-  , grid((size_t) inWidth * inHeight)
+  , grid((size_t) inWidth * inHeight, INACCESSABLE)
 {
 }
 
-Access Space::GetAccess(Point point) const
+const Access& RawSpace::GetAccess(Point point) const
 {
   return grid[PointToIndex(point)];
 }
 
-size_t Space::PointToIndex(Point& point) const
+size_t RawSpace::PointToIndex(Point& point) const
 {
+  // TODO throw exception?
+
   size_t index = point.x + (size_t) point.y * width;
   assert(index < grid.size());
   return index;
 }
 
-void Space::SetAccess(Point point, Access newAccess)
+void RawSpace::SetAccess(Point point, const Access& newAccess)
 {
   grid[PointToIndex(point)] = newAccess;
 }
 
-uint32_t Space::GetWidth() const
+uint32_t RawSpace::GetWidth() const
 {
   return width;
 }
 
-uint32_t Space::GetHeight() const
+uint32_t RawSpace::GetHeight() const
 {
   return height;
+}
+
+bool RawSpace::Contains(Point point) const
+{
+  // TODO incapsulate
+  return point.x < width && point.y < height;
 }
 
 SpaceReader::SpaceReader()
@@ -44,14 +53,14 @@ SpaceReader::SpaceReader()
 {
 }
 
-std::optional<Space> SpaceReader::FromHogFormat(std::istream& file)
+std::optional<RawSpace> SpaceReader::FromHogFormat(std::istream& file)
 {
   uint32_t width = 0, height = 0;
 
   if (!CheckHogFileStart(file, width, height)) return {};
   file.ignore(2, '\n');
 
-  Space readSpace(width, height);
+  RawSpace readSpace(width, height);
 
   char grid_value;
   for (uint32_t row = 0; row < height; ++row)
@@ -107,4 +116,77 @@ bool SpaceReader::CheckHogFileStart(std::istream& file, uint32_t& width, uint32_
   }
 
   return true;
+}
+
+const SegmentHolder& SegmentSpace::GetAccess(Point point) const
+{
+  return segmentGrid.at(point);
+}
+
+void SegmentSpace::SetAccess(Point point, const SegmentHolder & newAccess)
+{ 
+  segmentGrid[point] = newAccess;
+}
+
+bool SegmentSpace::Contains(Point point) const
+{
+  return segmentGrid.count(point) > 0;
+}
+
+SegmentSpace::SegmentSpace(Time depth, const RawSpace& base)
+{
+  assert(depth > 0);
+
+  for (uint32_t x = 0; x < base.GetWidth(); ++x)
+  {
+    for (uint32_t y = 0; y < base.GetHeight(); ++y)
+    {
+      Point point = { x, y };
+
+      if (base.GetAccess(point) == ACCESSABLE)
+      {
+        segmentGrid[point] = SegmentHolder(Segment{0, depth});
+      }
+    }
+  }
+}
+
+void SegmentSpace::MakeAreasInaccessable(const std::vector<Area>& areas)
+{
+  for (const Area& area : areas)
+  {
+    if (!Contains(area.point))
+    {
+      continue;
+    }
+
+    segmentGrid[area.point].RemoveSegment(area.interval);
+
+    // If segment holder becomes empty, it is still contained inside the SegmentSpace,
+    // because in future it may be needed to add accessable intervals there
+  }
+}
+
+SpaceTime::SpaceTime(Time inDepth, const RawSpace& base)
+  : SegmentSpace(inDepth, base)\
+  , depth(inDepth)
+{
+
+}
+
+Time SpaceTime::GetDepth() const
+{
+  return depth;
+}
+
+void SpaceTime::MoveTime(Time deltaTime)
+{
+  assert(deltaTime >= 0);
+
+  for (auto& [point, segment] : segmentGrid)
+  {
+    segment -= deltaTime;
+    segment.RemoveSegment( {-deltaTime, 0} );
+    segment.AddSegment({std::max(0.f, depth - deltaTime), depth});
+  }
 }

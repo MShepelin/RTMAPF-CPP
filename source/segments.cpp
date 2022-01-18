@@ -36,6 +36,34 @@ bool Segment::operator==(const Segment& other) const
   return start == other.start && end == other.end;
 }
 
+std::vector<Segment> Segment::operator-(const Segment& segment) const
+{
+  if (!segment.IsValid())
+  {
+    return { *this };
+  }
+
+  Segment commonSegment = operator&(segment);
+
+  std::vector<Segment> result;
+
+  if (commonSegment.start > start)
+  {
+    result.push_back({ start, commonSegment.start });
+  }
+  if (commonSegment.end < end)
+  {
+    result.push_back({ commonSegment.end, end });
+  }
+
+  return result;
+}
+
+Segment Segment::Invalid()
+{ 
+  return Segment{ 1, -1 }; 
+}
+
 void SegmentHolder::AddSegment(Segment newSegment)
 {
   const_iterator unionCandidate = segments.lower_bound({ newSegment.start, newSegment.start });
@@ -46,7 +74,20 @@ void SegmentHolder::AddSegment(Segment newSegment)
   }
 
   segments.insert(newSegment);
-  return;
+}
+
+void SegmentHolder::RemoveSegment(Segment removal)
+{
+  const_iterator removalCandidate = segments.upper_bound({ removal.start, removal.start });
+  while (removalCandidate != segments.end() && (removal & *removalCandidate).IsValid())
+  {
+    auto difference = (*removalCandidate) - removal;
+    segments.erase(removalCandidate++);
+    for (auto& newSegment : difference)
+    {
+      segments.insert(newSegment);
+    }
+  }
 }
 
 SegmentHolder::const_iterator SegmentHolder::begin() const
@@ -96,4 +137,31 @@ SegmentHolder SegmentHolder::operator&(const SegmentHolder& other) const
 bool SegmentHolder::operator==(const SegmentHolder& other) const
 {
   return segments == other.segments;
+}
+
+SegmentHolder::SegmentHolder()
+  : segments()
+{
+
+}
+
+SegmentHolder::SegmentHolder(Segment startSegment)
+  : segments({ startSegment })
+{
+
+}
+
+void SegmentHolder::operator-=(Time deltaTime)
+{
+  std::set<Segment> newSegments;
+
+  for (const_iterator iterator = begin(); iterator != end(); ++iterator)
+  {
+    Segment newSegment = *iterator;
+    newSegment.end -= deltaTime;
+    newSegment.start -= deltaTime;
+    newSegments.insert(newSegment);
+  }
+
+  segments = newSegments;
 }
