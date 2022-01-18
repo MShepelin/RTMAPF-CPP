@@ -55,8 +55,8 @@ using Speed = float;
 
 struct Point
 {
-  uint32_t x;
-  uint32_t y;
+  int x;
+  int y;
 
   Point operator+(Point other)
   {
@@ -70,6 +70,12 @@ struct Point
 };
 
 MAKE_HASHABLE(Point, type.x, type.y);
+
+struct Move
+{
+  Speed speed = 0;
+  Point deltaPoint;
+};
 
 using Shape = ArrayType<Point>;
 

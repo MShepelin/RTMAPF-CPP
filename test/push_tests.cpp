@@ -365,9 +365,9 @@ TEST(AgentTest, MakeAgentSpace)
 
   SegmentSpace newSpace = AgentOperations::MakeSpaceFromAgentShape(space, agent);
 
-  for (uint32_t x = 0; x < 4; ++x)
+  for (int x = 0; x < 4; ++x)
   {
-    for (uint32_t y = 0; y < 4; ++y)
+    for (int y = 0; y < 4; ++y)
     {
       Point point{ x, y };
       ASSERT_EQ(newSpace.Contains(point), space.Contains(point));

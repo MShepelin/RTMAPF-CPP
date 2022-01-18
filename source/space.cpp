@@ -63,9 +63,9 @@ std::optional<RawSpace> SpaceReader::FromHogFormat(std::istream& file)
   RawSpace readSpace(width, height);
 
   char grid_value;
-  for (uint32_t row = 0; row < height; ++row)
+  for (int row = 0; row < height; ++row)
   {
-    for (uint32_t column = 0; column < width; ++column)
+    for (int column = 0; column < width; ++column)
     {
       file.get(grid_value);
       Access newAccess = INACCESSABLE;

@@ -5,12 +5,6 @@
 
 using AgentID = uint32_t;
 
-struct Move
-{
-  Speed speed = 0;
-  Point deltaPoint;
-};
-
 struct Agent
 {
   // TODO struct -> class, public and private methods
