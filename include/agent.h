@@ -2,8 +2,6 @@
 
 #include "search_types.h"
 #include "space.h"
-#include <inttypes.h>
-#include <vector>
 
 using AgentID = uint32_t;
 
@@ -20,7 +18,7 @@ struct Agent
   AgentID id;
 
   Shape shape;
-  std::vector<Move> moves;
+  ArrayType<Move> moves;
 };
 
 namespace AgentOperations

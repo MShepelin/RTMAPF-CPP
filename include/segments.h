@@ -1,7 +1,6 @@
 #pragma once
 
 #include "search_types.h"
-#include <set>
 
 /**
  * Segment desribes time from the start to the end including both points.
@@ -39,8 +38,8 @@ struct Segment
 class SegmentHolder
 {
 private:
-  std::set<Segment> segments;
-  using const_iterator = std::set<Segment>::const_iterator;
+  SetType<Segment> segments;
+  using const_iterator = SetType<Segment>::const_iterator;
 
 public:
   SegmentHolder();

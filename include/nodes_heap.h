@@ -1,7 +1,6 @@
 #pragma once
 
 #include "search_types.h"
-#include <vector>
 #include <cassert>
 
 #define HEAP_START_CAPACITY 16
@@ -16,7 +15,7 @@ public:
   using NodeType = Node<CellType>;
 
 protected:
-  std::vector<NodeType*> nodes;
+  ArrayType<NodeType*> nodes;
 
   // TODO create NodesBinaryHeap.config
   bool isTieBreakMaxTime;

@@ -1,11 +1,9 @@
 #pragma once
 
-#include <vector>
 #include "search_types.h"
 #include "segments.h"
 #include <iostream>
 #include <optional>
-#include <unordered_map>
 #include <stdexcept>
 
 template<class AccessType, class CellType>
@@ -28,7 +26,7 @@ public:
 class RawSpace : public Space<Access, Point>
 {
 private:
-  std::vector<Access> grid;
+  ArrayType<Access> grid;
   uint32_t width;
   uint32_t height;
 
@@ -51,7 +49,7 @@ public:
 class SpaceReader
 {
 private:
-  std::unordered_map<char, Access> symbolToAccess;
+  MapType<char, Access> symbolToAccess;
 
   inline bool CheckHogFileStart(std::istream& file, uint32_t& width, uint32_t& height);
 
@@ -64,7 +62,7 @@ public:
 class SegmentSpace : public Space<SegmentHolder, Point>
 {
 protected:
-  std::unordered_map<Point, SegmentHolder> segmentGrid;
+  MapType<Point, SegmentHolder> segmentGrid;
 
 public:
   SegmentSpace(Time depth, const RawSpace& base);
@@ -74,7 +72,7 @@ public:
 
   bool Contains(Point point) const;
 
-  void MakeAreasInaccessable(const std::vector<Area>& areas);
+  void MakeAreasInaccessable(const ArrayType<Area>& areas);
 };
 
 /**

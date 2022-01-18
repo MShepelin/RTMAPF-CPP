@@ -2,7 +2,22 @@
 
 #include <inttypes.h>
 #include <functional>
+
+#ifndef UNREAL_BUILD
 #include <vector>
+
+template <class _Ty, class _Alloc = std::allocator<_Ty>>
+using ArrayType = std::vector<_Ty, _Alloc>;
+
+#include <unordered_map>
+template <class _Kty, class _Ty, class _Hasher = std::hash<_Kty>, class _Keyeq = std::equal_to<_Kty>,
+  class _Alloc = std::allocator<std::pair<const _Kty, _Ty>>>
+using MapType = std::unordered_map<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>;
+
+#include <set>
+template <class _Kty, class _Pr = std::less<_Kty>, class _Alloc = std::allocator<_Kty>>
+using SetType = std::set<_Kty, _Pr, _Alloc>;
+#endif // UNREAL_BUILD
 
 // The difinitions of MAKE_HASHABLE and hash_combine are borrowed from:
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
@@ -56,7 +71,7 @@ struct Point
 
 MAKE_HASHABLE(Point, type.x, type.y);
 
-using Shape = std::vector<Point>;
+using Shape = ArrayType<Point>;
 
 template<typename CellType>
 struct Node
