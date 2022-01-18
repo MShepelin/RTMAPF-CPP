@@ -97,6 +97,27 @@ TEST(SegmentsTests, Comparison)
   ASSERT_FALSE(b < a);
 }
 
+TEST(SegmentsTests, Substraction)
+{
+  Segment a{ 2, 5 };
+  Segment b{ 3, 4 };
+  Segment c{ 1, 3 };
+  Segment d{ 4, 8 };
+
+  std::vector<Segment> res = { {2, 3}, {4, 5} };
+  ASSERT_EQ(a - b, res);
+  ASSERT_EQ((b - a).size(), 0);
+
+  std::vector<Segment> res2 = { { 3, 5 } };
+  ASSERT_EQ(a - c, res2);
+
+  std::vector<Segment> res3 = { { 1, 2 } };
+  ASSERT_EQ(c - a, res3);
+
+  ASSERT_EQ(b - d, std::vector<Segment>{ b });
+  ASSERT_EQ(c - Segment::Invalid(), std::vector<Segment>{ c });
+}
+
 void SegmentsAdditionWithCheck(SegmentHolder& segments, const std::vector<Segment>& answer, const std::vector<Segment>& input)
 {
   for (Segment s : input)

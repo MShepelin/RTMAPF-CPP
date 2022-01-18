@@ -36,6 +36,34 @@ bool Segment::operator==(const Segment& other) const
   return start == other.start && end == other.end;
 }
 
+std::vector<Segment> Segment::operator-(const Segment& segment)
+{
+  if (!segment.IsValid())
+  {
+    return { *this };
+  }
+
+  Segment commonSegment = operator&(segment);
+
+  std::vector<Segment> result;
+
+  if (commonSegment.start > start)
+  {
+    result.push_back({ start, commonSegment.start });
+  }
+  if (commonSegment.end < end)
+  {
+    result.push_back({ commonSegment.end, end });
+  }
+
+  return result;
+}
+
+Segment Segment::Invalid()
+{ 
+  return Segment{ 1, -1 }; 
+}
+
 void SegmentHolder::AddSegment(Segment newSegment)
 {
   const_iterator unionCandidate = segments.lower_bound({ newSegment.start, newSegment.start });

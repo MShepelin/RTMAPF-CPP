@@ -16,6 +16,7 @@ struct Segment
   Time end;
 
   bool IsValid() const;
+  static Segment Invalid();
 
   /**
    * Intersection of two segments.
@@ -27,6 +28,8 @@ struct Segment
    * Otherwise this function shouldn't be used (assertion).
    */
   Segment operator|(const Segment& other) const;
+
+  std::vector<Segment> operator-(const Segment& segment);
 
   bool operator<(const Segment& other) const;
 
