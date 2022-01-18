@@ -29,7 +29,7 @@ struct Segment
    */
   Segment operator|(const Segment& other) const;
 
-  std::vector<Segment> operator-(const Segment& segment);
+  std::vector<Segment> operator-(const Segment& segment) const;
 
   bool operator<(const Segment& other) const;
 
@@ -51,11 +51,12 @@ public:
    * the new one will be added. Otherwise, a united segment will be created.
    */
   void AddSegment(Segment newSegment);
+  
+  void RemoveSegment(Segment removal);
 
   SegmentHolder operator&(const SegmentHolder& other) const;
 
   const_iterator begin() const;
-
   const_iterator end() const;
 
   bool operator==(const SegmentHolder& other) const;

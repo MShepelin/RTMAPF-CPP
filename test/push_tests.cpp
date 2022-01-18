@@ -202,16 +202,16 @@ void IntersectSegments(std::istream& input)
 {
   while (!input.eof())
   {
-    SegmentHolder firstSegment;
-    ReadSegments(input, firstSegment);
+    SegmentHolder firstSegmentHolder;
+    ReadSegments(input, firstSegmentHolder);
 
-    SegmentHolder secondSegment;
-    ReadSegments(input, secondSegment);
+    SegmentHolder secondSegmentHolder;
+    ReadSegments(input, secondSegmentHolder);
 
     SegmentHolder answer;
     ReadSegments(input, answer);
 
-    ASSERT_EQ(firstSegment & secondSegment, answer);
+    ASSERT_EQ(firstSegmentHolder & secondSegmentHolder, answer);
   }
 }
 
@@ -235,6 +235,43 @@ TEST(SegmentHolderTests, Intersection)
     "8 2 3 4 5 6 7 8 9");
 
   IntersectSegments(input);
+}
+
+void RemoveSegmentTest(std::istream& input)
+{
+  while (!input.eof())
+  {
+    SegmentHolder firstSegmentHolder;
+    ReadSegments(input, firstSegmentHolder);
+
+    Time start, end;
+    input >> start >> end;
+    Segment removal{ start, end };
+
+    SegmentHolder answer;
+    ReadSegments(input, answer);
+
+    firstSegmentHolder.RemoveSegment(removal);
+    ASSERT_EQ(firstSegmentHolder, answer);
+  }
+}
+
+TEST(SegmentHolderTests, SegmentRemoval)
+{
+  std::stringstream input(\
+    "6 2 3 4 5 6 7\n"\
+    "0 1\n"\
+    "6 2 3 4 5 6 7\n"\
+    \
+    "6 2 3 4 5 6 7\n"\
+    "8 9\n"\
+    "6 2 3 4 5 6 7\n"\
+    \
+    "6 0 2 3 4 5 7\n"\
+    "1 6\n"\
+    "4 0 1 6 7");
+
+  RemoveSegmentTest(input);
 }
 
 TEST(AgentTest, MakeAgentSpace)

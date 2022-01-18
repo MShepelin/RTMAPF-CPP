@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <functional>
+#include <vector>
 
 // The difinitions of MAKE_HASHABLE and hash_combine are borrowed from:
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
@@ -54,3 +55,5 @@ struct Point
 };
 
 MAKE_HASHABLE(Point, type.x, type.y);
+
+using Shape = std::vector<Point>;

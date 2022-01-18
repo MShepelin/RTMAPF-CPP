@@ -36,7 +36,7 @@ bool Segment::operator==(const Segment& other) const
   return start == other.start && end == other.end;
 }
 
-std::vector<Segment> Segment::operator-(const Segment& segment)
+std::vector<Segment> Segment::operator-(const Segment& segment) const
 {
   if (!segment.IsValid())
   {
@@ -74,7 +74,20 @@ void SegmentHolder::AddSegment(Segment newSegment)
   }
 
   segments.insert(newSegment);
-  return;
+}
+
+void SegmentHolder::RemoveSegment(Segment removal)
+{
+  const_iterator removalCandidate = segments.upper_bound({ removal.start, removal.start });
+  while (removalCandidate != segments.end() && (removal & *removalCandidate).IsValid())
+  {
+    auto difference = (*removalCandidate) - removal;
+    segments.erase(removalCandidate++);
+    for (auto& newSegment : difference)
+    {
+      segments.insert(newSegment);
+    }
+  }
 }
 
 SegmentHolder::const_iterator SegmentHolder::begin() const

@@ -19,7 +19,7 @@ struct Agent
 
   AgentID id;
 
-  std::vector<Point> shape;
+  Shape shape;
   std::vector<Move> moves;
 };
 
