@@ -43,7 +43,7 @@ uint32_t RawSpace::GetHeight() const
 bool RawSpace::Contains(Point point) const
 {
   // TODO incapsulate
-  return point.x < (int) width && point.y < (int) height;
+  return point.x >= 0 && point.x < (int) width && point.y >= 0 && point.y < (int) height;
 }
 
 SpaceReader::SpaceReader()

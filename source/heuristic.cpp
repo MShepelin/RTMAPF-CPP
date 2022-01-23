@@ -11,18 +11,13 @@ EuclideanHeuristic::EuclideanHeuristic(Point inOrigin)
 
 Time EuclideanHeuristic::GetCost(Point to) const
 {
-  float deltaX = abs((float)origin.x - to.x);
-  float deltaY = abs((float)origin.y - to.y);
+  Time deltaX = abs((Time)origin.x - to.x);
+  Time deltaY = abs((Time)origin.y - to.y);
 
-  return std::sqrtf(deltaX * deltaX - deltaY * deltaY);
+  return std::sqrtf(deltaX * deltaX + deltaY * deltaY);
 }
 
-Time EuclideanHeuristic::FindCost(Point to)
+void EuclideanHeuristic::FindCost(Point to)
 {
-  return GetCost(to);
-}
-
-bool EuclideanHeuristic::IsCostFound(Point to) const
-{
-  return true;
+  return;
 }

@@ -14,5 +14,7 @@ template<typename CellType>
 class MoveComponent
 {
 public:
-  virtual ArrayType<Move<CellType> FindValidMoves(const Node<CellType>& node) = 0;
+  virtual ArrayType<Move<CellType>> FindValidMoves(const Node<CellType>& node) = 0;
+
+  virtual ~MoveComponent() {};
 };

@@ -14,7 +14,7 @@ public:
 
   virtual Time GetCost(CellType to) const { return 0.f; };
 
-  virtual Time FindCost(CellType to) { return 0.f; };
+  virtual void FindCost(CellType to) { };
 
   virtual bool IsCostFound(CellType to) const { return true; };
 
@@ -31,7 +31,5 @@ public:
 
   virtual Time GetCost(Point to) const;
 
-  virtual Time FindCost(Point to);
-
-  virtual bool IsCostFound(Point to) const;
+  virtual void FindCost(Point to);
 };
