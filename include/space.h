@@ -6,12 +6,12 @@
 #include <optional>
 #include <stdexcept>
 
-template<class AccessType, class CellType>
+template<class CellType>
 class Space
 {
 public:
-  virtual const AccessType& GetAccess(CellType cell) const = 0;
-  virtual void SetAccess(CellType cell, const AccessType& newAccess) = 0;
+  virtual Access GetAccess(CellType cell) const = 0;
+  virtual void SetAccess(CellType cell, Access Access) = 0;
   virtual bool Contains(CellType cell) const = 0;
 
   virtual ~Space() {};
@@ -23,7 +23,7 @@ public:
   explicit space_error(const std::string& what_arg) : std::runtime_error(what_arg) {};
 };
 
-class RawSpace : public Space<Access, Point>
+class RawSpace : public Space<Point>
 {
 private:
   ArrayType<Access> grid;
@@ -37,8 +37,8 @@ public:
   RawSpace() = delete;
   RawSpace(uint32_t inWidth, uint32_t inHeight);
 
-  const Access& GetAccess(Point point) const override;
-  void SetAccess(Point point, const Access& newAccess) override;
+  Access GetAccess(Point point) const override;
+  void SetAccess(Point point, Access newAccess) override;
 
   uint32_t GetWidth() const;
   uint32_t GetHeight() const;
@@ -59,7 +59,7 @@ public:
   std::optional<RawSpace> FromHogFormat(std::istream& file);
 };
 
-class SegmentSpace : public Space<SegmentHolder, Point>
+class SegmentSpace : public Space<Area>
 {
 protected:
   MapType<Point, SegmentHolder> segmentGrid;
@@ -67,10 +67,13 @@ protected:
 public:
   SegmentSpace(Time depth, const RawSpace& base);
 
-  const SegmentHolder& GetAccess(Point point) const;
-  void SetAccess(Point point, const SegmentHolder& newAccess);
-
-  bool Contains(Point point) const;
+  void SetSegments(Point point, const SegmentHolder& newAccess);
+  const SegmentHolder& GetSegments(Point point) const;
+  bool ContainsSegmentsIn(Point point) const;
+  
+  virtual Access GetAccess(Area cell) const override;
+  virtual void SetAccess(Area cell, Access Access) override;
+  virtual bool Contains(Area cell) const override;
 
   void MakeAreasInaccessable(const ArrayType<Area>& areas);
 };

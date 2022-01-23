@@ -49,8 +49,6 @@ using Access = uint8_t;
 
 using Time = float;
 
-using Speed = float;
-
 #define START_TIME 0.f
 
 struct Point
@@ -71,12 +69,6 @@ struct Point
 
 MAKE_HASHABLE(Point, type.x, type.y);
 
-struct Move
-{
-  Speed speed = 0;
-  Point deltaPoint;
-};
-
 using Shape = ArrayType<Point>;
 
 template<typename CellType>
@@ -95,6 +87,7 @@ struct Node
     , minTime(0)
     , heursticToGoal(-1)
     , parent(nullptr)
+    , heapIndex(0)
   { }
 
   Node(CellType inCell, Time inMinTime, Time inHeuristic = -1)
@@ -102,6 +95,7 @@ struct Node
     , minTime(inMinTime)
     , heursticToGoal(inHeuristic)
     , parent(nullptr)
+    , heapIndex(0)
   { }
 
   Node()
@@ -109,5 +103,6 @@ struct Node
     , minTime(-1)
     , heursticToGoal(-1)
     , parent(nullptr)
+    , heapIndex(0)
   { }
 };

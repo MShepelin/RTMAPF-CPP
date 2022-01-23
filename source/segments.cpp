@@ -64,6 +64,11 @@ Segment Segment::Invalid()
   return Segment{ 1, -1 }; 
 }
 
+bool SegmentHolder::Contains(Segment segment) const
+{
+  return (segments.count(segment) > 0);
+}
+
 void SegmentHolder::AddSegment(Segment newSegment)
 {
   const_iterator unionCandidate = segments.lower_bound({ newSegment.start, newSegment.start });

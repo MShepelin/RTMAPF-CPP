@@ -12,7 +12,7 @@ struct Agent
   AgentID id;
 
   Shape shape;
-  ArrayType<Move> moves;
+  // move component
 };
 
 namespace AgentOperations
