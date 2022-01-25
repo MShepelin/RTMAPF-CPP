@@ -177,7 +177,7 @@ Access SegmentSpace::GetAccess(Area cell) const
 
 void SegmentSpace::SetAccess(Area cell, Access Access)
 {
-  assert(Contains(cell));
+  assert(segmentGrid.count(cell.point) > 0);
 
   if (Access == ACCESSABLE)
   {
@@ -221,4 +221,23 @@ void SpaceTime::MoveTime(Time deltaTime)
     segment.RemoveSegment( {-deltaTime, 0} );
     segment.AddSegment({std::max(0.f, depth - deltaTime), depth});
   }
+}
+
+void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& areas)
+{
+  areas.clear();
+
+  for (size_t cellIndex = 0; cellIndex + 1 < path.size(); ++cellIndex)
+  {
+    Segment movementOnPlace{ path[cellIndex].minTime, path[cellIndex + 1].minTime };
+    areas.push_back(Area{ path[cellIndex].cell.point, movementOnPlace });
+
+    Segment movementOnDestination{ 
+      std::min(path[cellIndex].cell.interval.end, path[cellIndex + 1].cell.interval.end), 
+      path[cellIndex].minTime };
+    areas.push_back(Area{ path[cellIndex + 1].cell.point, movementOnDestination });
+  }
+
+  Segment movementOnPlace{ path.back().minTime, path.back().cell.interval.end };
+  areas.push_back(Area{ path.back().cell.point, movementOnPlace });
 }

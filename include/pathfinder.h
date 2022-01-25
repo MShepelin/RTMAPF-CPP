@@ -4,6 +4,7 @@
 #include "heuristic.h"
 #include "search_types.h"
 #include "moves.h"
+#include <chrono>
 #include <cassert>
 
 template<typename CellType>
@@ -23,7 +24,7 @@ private:
   using NodeType = Node<CellType>;
   using StatType = SearchResult<CellType>;
 
-  StatType statistics;
+  mutable StatType statistics;
 
   NodesBinaryHeap<CellType> openNodes;
   MapType<CellType, NodeType> nodes;
@@ -191,3 +192,4 @@ void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path) c
   std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - start;
   statistics.time += duration.count(); // in seconds
 }
+

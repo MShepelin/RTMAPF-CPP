@@ -78,6 +78,8 @@ public:
   void MakeAreasInaccessable(const ArrayType<Area>& areas);
 };
 
+void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& areas);
+
 /**
  * Space that holds time segments limited by [0, depth]
  */

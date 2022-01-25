@@ -144,7 +144,12 @@ TEST(PathfindingTests, SegmentMap)
   Time cost = simplePathfinding.GetCost(destination);
   ASSERT_EQ(cost, 2);
 
+  ArrayType<Node<Area>> path;
+  simplePathfinding.CollectPath(destination, path);
 
+  ASSERT_EQ(path.size(), 3);
+  ASSERT_EQ(path[0].minTime, 0);
+  ASSERT_EQ(path[0].cell, origin);
 }
 
 int main(int argc, char* argv[])

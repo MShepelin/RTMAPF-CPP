@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO move to config?
+
 #include <inttypes.h>
 #include <functional>
 
@@ -44,6 +46,7 @@ inline void hash_combine(std::size_t& seed, const T& v, Rest... rest) {
 
 using Access = uint8_t;
 
+// TODO create static consts
 #define ACCESSABLE 1
 #define INACCESSABLE 0
 

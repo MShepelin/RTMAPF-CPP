@@ -38,6 +38,7 @@ public:
   virtual void FindCost(Point to);
 };
 
+// TODO create template
 class SpaceAdapter : public Heuristic<Area>
 {
   std::shared_ptr<Heuristic<Point>> heuristic;
