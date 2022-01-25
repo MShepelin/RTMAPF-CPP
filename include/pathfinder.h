@@ -5,7 +5,6 @@
 #include "search_types.h"
 #include "moves.h"
 #include <cassert>
-#include <optional>
 
 template<typename CellType>
 struct SearchResult
@@ -15,7 +14,7 @@ struct SearchResult
   double time = 0;
 };
 
-template<typename CellType, typename SpaceType>
+template<typename CellType>
 class Pathfinder : public Heuristic<CellType>
 {
 private:
@@ -25,10 +24,9 @@ private:
   StatType statistics;
 
   NodesBinaryHeap<CellType> openNodes;
-  std::unordered_map<CellType, NodeType> nodes;
+  MapType<CellType, NodeType> nodes;
 
   std::shared_ptr<Heuristic<CellType>> heuristic;
-  std::shared_ptr<SpaceType> space;
   std::shared_ptr<MoveComponent<CellType>> moves;
 
   void ExpandNode(NodeType* node);
@@ -38,8 +36,7 @@ private:
 public:
   Pathfinder(
     std::shared_ptr<MoveComponent<CellType>> inMoves, 
-    CellType origin, 
-    std::shared_ptr<SpaceType> inSpace,
+    CellType origin,
     std::shared_ptr<Heuristic<CellType>> inHeuristic);
 
   virtual Time GetCost(CellType to) const override;
@@ -54,17 +51,15 @@ public:
   }
 };
 
-template<typename CellType, typename SpaceType>
-Pathfinder<CellType, SpaceType>::Pathfinder(
+template<typename CellType>
+Pathfinder<CellType>::Pathfinder(
   std::shared_ptr<MoveComponent<CellType>> inMoves, 
-  CellType origin, 
-  std::shared_ptr<SpaceType> inSpace,
+  CellType origin,
   std::shared_ptr<Heuristic<CellType>> inHeuristic
   )
   : Heuristic(origin)
   , moves(inMoves)
   , openNodes(true)
-  , space(inSpace)
   , heuristic(inHeuristic)
 { 
   heuristic->FindCost(origin);
@@ -75,8 +70,8 @@ Pathfinder<CellType, SpaceType>::Pathfinder(
   }
 }
 
-template<typename CellType, typename SpaceType>
-void Pathfinder<CellType, SpaceType>::ExpandNode(NodeType* node)
+template<typename CellType>
+void Pathfinder<CellType>::ExpandNode(NodeType* node)
 {
   for (auto& validMove : moves->FindValidMoves(*node))
   {
@@ -123,22 +118,22 @@ void Pathfinder<CellType, SpaceType>::ExpandNode(NodeType* node)
   }
 }
 
-template<typename CellType, typename SpaceType>
-Time Pathfinder<CellType, SpaceType>::GetCost(CellType to) const
+template<typename CellType>
+Time Pathfinder<CellType>::GetCost(CellType to) const
 {
   assert(IsCostFound(to));
 
   return nodes.at(to).minTime;
 }
 
-template<typename CellType, typename SpaceType>
-bool Pathfinder<CellType, SpaceType>::IsCostFound(CellType to) const
+template<typename CellType>
+bool Pathfinder<CellType>::IsCostFound(CellType to) const
 {
   return nodes.count(to) > 0;
 }
 
-template<typename CellType, typename SpaceType>
-void Pathfinder<CellType, SpaceType>::FindCost(CellType to)
+template<typename CellType>
+void Pathfinder<CellType>::FindCost(CellType to)
 {
   if (IsCostFound(to))
   {

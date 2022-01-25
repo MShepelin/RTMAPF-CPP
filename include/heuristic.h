@@ -18,6 +18,10 @@ public:
 
   virtual bool IsCostFound(CellType to) const { return true; };
 
+  virtual CellType GetOrigin() const { return CellType(); }
+
+  virtual void SetOrigin(CellType origin) {}
+
   virtual ~Heuristic() {};
 };
 
@@ -32,4 +36,25 @@ public:
   virtual Time GetCost(Point to) const;
 
   virtual void FindCost(Point to);
+};
+
+class SpaceAdapter : public Heuristic<Area>
+{
+  std::shared_ptr<Heuristic<Point>> heuristic;
+
+public:
+  SpaceAdapter(std::shared_ptr<Heuristic<Point>> inHeuristic)
+    : heuristic(inHeuristic)
+    , Heuristic<Area>(Area{ inHeuristic->GetOrigin() })
+  {}
+
+  virtual bool IsCostFound(Area to) const override { return heuristic->IsCostFound(to.point); };
+
+  virtual Time GetCost(Area to) const override { return heuristic->GetCost(to.point); }
+
+  virtual void FindCost(Area to) override { return heuristic->FindCost(to.point); };
+
+  virtual Area GetOrigin() const override { return Area{ heuristic->GetOrigin() }; }
+
+  virtual void SetOrigin(Area origin) override { heuristic->SetOrigin(origin.point); }
 };

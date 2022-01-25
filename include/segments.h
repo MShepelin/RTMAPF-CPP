@@ -35,6 +35,8 @@ struct Segment
   bool operator==(const Segment& other) const;
 };
 
+MAKE_HASHABLE(Segment, type.start, type.end);
+
 class SegmentHolder
 {
 private:
@@ -68,4 +70,11 @@ struct Area
 {
   Point point;
   Segment interval;
+
+  bool operator==(const Area& other) const
+  {
+    return point == other.point && interval == other.interval;
+  }
 };
+
+MAKE_HASHABLE(Area, type.point, type.interval);

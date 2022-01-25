@@ -34,6 +34,55 @@ public:
   {}
 };
 
+class MovesTestSegment : public MoveComponent<Area>
+{
+private:
+  SegmentSpace* space;
+  ArrayType<Move<Point>> moves;
+  
+public:
+  virtual ArrayType<Move<Area>> FindValidMoves(const Node<Area>& node) override
+  {
+    ArrayType<Move<Area>> result;
+    Area origin = node.cell;
+
+    EXPECT_TRUE(space->ContainsSegmentsIn(origin.point));
+    EXPECT_TRUE(space->Contains(origin));
+
+    for (Move<Point> move : moves)
+    {
+      Time speedDelta = move.cost;
+      Point destinationPoint = origin.point + move.destination;
+
+      if (!space->ContainsSegmentsIn(destinationPoint)) continue;
+      const SegmentHolder& segHolder = space->GetSegments(destinationPoint);
+
+      for (const auto& segment : segHolder)
+      {
+        Segment traversal{ 
+          node.minTime + speedDelta,
+          node.cell.interval.end + speedDelta };
+
+        Segment both = traversal & segment;
+      
+        if (both.IsValid())
+        {
+          Time overallCost = both.start - node.minTime;
+          EXPECT_TRUE(overallCost >= move.cost);
+          result.push_back({ overallCost, Area{destinationPoint, segment} });
+        }
+      }
+    }
+
+    return result;
+  }
+
+  MovesTestSegment(ArrayType<Move<Point>>& inmoves, SegmentSpace* inspace)
+    : space(inspace)
+    , moves(inmoves)
+  {}
+};
+
 TEST(PathfindingTests, SimpleMap)
 {
   std::shared_ptr<RawSpace> space(new RawSpace(3, 3));
@@ -55,7 +104,42 @@ TEST(PathfindingTests, SimpleMap)
   std::shared_ptr<EuclideanHeuristic> h(new EuclideanHeuristic(destination));
   std::shared_ptr<MovesTest> movesComponent(new MovesTest(moves, space.get()));
 
-  Pathfinder<Point, RawSpace> simplePathfinding(movesComponent, origin, space, h);
+  Pathfinder<Point> simplePathfinding(movesComponent, origin, h);
+
+  simplePathfinding.FindCost(destination);
+  ASSERT_TRUE(simplePathfinding.IsCostFound(destination));
+
+  Time cost = simplePathfinding.GetCost(destination);
+  ASSERT_EQ(cost, 2);
+}
+
+TEST(PathfindingTests, SegmentMap)
+{
+  std::shared_ptr<RawSpace> space(new RawSpace(3, 3));
+  space->SetAccess({ 0, 0 }, ACCESSABLE);
+  space->SetAccess({ 0, 1 }, ACCESSABLE);
+  space->SetAccess({ 0, 2 }, ACCESSABLE);
+
+  Time depth = 4;
+  std::shared_ptr<SegmentSpace> segmentSpace(new SegmentSpace(depth, *space));
+
+  Area origin = { { 0, 0 }, {0, depth} };
+  Area destination = { { 0, 2 }, {0, depth} };
+
+  ArrayType<Move<Point>> moves =
+  {
+    Move<Point>{ 1, {0, 1}},
+    Move<Point>{ 1, {0, -1}},
+    Move<Point>{ 1, {1, 0}},
+    Move<Point>{ 1, {-1, 0}},
+  };
+
+  std::shared_ptr<MovesTestSegment> movesComponent(new MovesTestSegment(moves, segmentSpace.get()));
+
+  std::shared_ptr<EuclideanHeuristic> hpoint(new EuclideanHeuristic(destination.point));
+  std::shared_ptr<Heuristic<Area>> h(new SpaceAdapter(hpoint));
+
+  Pathfinder<Area> simplePathfinding(movesComponent, origin, h);
 
   simplePathfinding.FindCost(destination);
   ASSERT_TRUE(simplePathfinding.IsCostFound(destination));

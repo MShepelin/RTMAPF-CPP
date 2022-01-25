@@ -3,6 +3,7 @@
 #include "agent.h"
 #include <fstream>
 #include <sstream>
+#include <optional>
 #include "nodes_heap.h"
 #include <gtest/gtest.h>
 

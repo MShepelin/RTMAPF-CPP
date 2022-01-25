@@ -120,6 +120,7 @@ bool SpaceReader::CheckHogFileStart(std::istream& file, uint32_t& width, uint32_
 
 const SegmentHolder& SegmentSpace::GetSegments(Point point) const
 {
+  assert(ContainsSegmentsIn(point));
   return segmentGrid.at(point);
 }
 
