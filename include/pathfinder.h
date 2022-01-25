@@ -9,6 +9,8 @@
 template<typename CellType>
 struct SearchResult
 {
+  // TODO encapsulate timer
+
   size_t nodescreated = 0;
   size_t numberofsteps = 0;
   double time = 0;
@@ -49,6 +51,8 @@ public:
   {
     return statistics;
   }
+
+  void CollectPath(CellType to, ArrayType<NodeType>& path) const;
 };
 
 template<typename CellType>
@@ -161,4 +165,29 @@ void Pathfinder<CellType>::FindCost(CellType to)
   statistics.nodescreated = nodes.size();
   std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - start;
   statistics.time += duration.count();
+}
+
+template<typename CellType>
+void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path) const
+{
+  path.clear();
+
+  if (!IsCostFound(to))
+  {
+    return;
+  }
+
+  auto start = std::chrono::high_resolution_clock::now();
+
+  const NodeType* currentNode = &nodes.at(to);
+  while (currentNode)
+  {
+    path.push_back(NodeType(currentNode->cell, currentNode->minTime, currentNode->heursticToGoal));
+    currentNode = currentNode->parent;
+  }
+
+  std::reverse(path.begin(), path.end());
+
+  std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - start;
+  statistics.time += duration.count(); // in seconds
 }

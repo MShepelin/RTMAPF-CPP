@@ -33,6 +33,9 @@ struct Segment
   bool operator<(const Segment& other) const;
 
   bool operator==(const Segment& other) const;
+
+  Time GetLength() const { //TODO move to cpp
+    return end - start; }
 };
 
 MAKE_HASHABLE(Segment, type.start, type.end);

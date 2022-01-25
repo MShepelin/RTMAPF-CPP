@@ -49,25 +49,22 @@ public:
     EXPECT_TRUE(space->ContainsSegmentsIn(origin.point));
     EXPECT_TRUE(space->Contains(origin));
 
+    Segment moveAvailable{ node.minTime, node.cell.interval.end };
+
     for (Move<Point> move : moves)
     {
-      Time speedDelta = move.cost;
       Point destinationPoint = origin.point + move.destination;
 
       if (!space->ContainsSegmentsIn(destinationPoint)) continue;
       const SegmentHolder& segHolder = space->GetSegments(destinationPoint);
 
-      for (const auto& segment : segHolder)
+      for (Segment segment : segHolder)
       {
-        Segment traversal{ 
-          node.minTime + speedDelta,
-          node.cell.interval.end + speedDelta };
-
-        Segment both = traversal & segment;
+        Segment both = moveAvailable & segment;
       
-        if (both.IsValid())
+        if (both.IsValid() && both.GetLength() >= move.cost)
         {
-          Time overallCost = both.start - node.minTime;
+          Time overallCost = both.start + move.cost - node.minTime;
           EXPECT_TRUE(overallCost >= move.cost);
           result.push_back({ overallCost, Area{destinationPoint, segment} });
         }
@@ -146,6 +143,8 @@ TEST(PathfindingTests, SegmentMap)
 
   Time cost = simplePathfinding.GetCost(destination);
   ASSERT_EQ(cost, 2);
+
+
 }
 
 int main(int argc, char* argv[])

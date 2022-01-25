@@ -7,6 +7,8 @@
 #include "nodes_heap.h"
 #include <gtest/gtest.h>
 
+// TODO add segment & operation with dots (for example, {0, 0} and {-1, 1})
+
 TEST(SpaceTests, Construction)
 {
   RawSpace space(3, 3);
