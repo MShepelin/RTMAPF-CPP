@@ -13,8 +13,3 @@ struct Agent
   AgentID id;
   Shape shape;
 };
-
-namespace AgentOperations
-{
-  SegmentSpace MakeSpaceFromAgentShape(const SegmentSpace& base, const Agent& agent);
-}

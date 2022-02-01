@@ -5,6 +5,7 @@
 #include <sstream>
 #include <optional>
 #include "nodes_heap.h"
+#include "shapes.h"
 #include <gtest/gtest.h>
 
 // TODO add segment & operation with dots (for example, {0, 0} and {-1, 1})
@@ -364,19 +365,21 @@ TEST(AgentTest, MakeAgentSpace)
   RawSpace baseSpace(3, 3);
   baseSpace.SetAccess({ 2, 2 }, Access::Accessable);
 
-  SegmentSpace space(depth, baseSpace);
+  std::shared_ptr<SegmentSpace> space = std::make_shared< SegmentSpace>(depth, baseSpace);
 
-  SegmentSpace newSpace = AgentOperations::MakeSpaceFromAgentShape(space, agent);
+  Shape shape = { ArrayType<Point>{ {0, 0}} };
+  ShapeSpace newSpace(depth, space, shape);
 
   for (int x = 0; x < 4; ++x)
   {
     for (int y = 0; y < 4; ++y)
     {
       Point point{ x, y };
-      ASSERT_EQ(newSpace.ContainsSegmentsIn(point), space.ContainsSegmentsIn(point));
+      newSpace.UpdateShape(point);
+      ASSERT_EQ(newSpace.ContainsSegmentsIn(point), space->ContainsSegmentsIn(point));
       if (!newSpace.ContainsSegmentsIn(point)) continue;
 
-      ASSERT_EQ(newSpace.GetSegments(point), space.GetSegments(point));
+      ASSERT_EQ(newSpace.GetSegments(point), space->GetSegments(point));
     }
   }
 }
