@@ -10,9 +10,7 @@ struct Agent
   // TODO struct -> class, public and private methods
 
   AgentID id;
-
-  Shape shape;
-  // move component
+  ArrayType<Point> shape;
 };
 
 namespace AgentOperations

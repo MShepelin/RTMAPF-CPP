@@ -233,8 +233,8 @@ void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& a
     areas.push_back(Area{ path[cellIndex].cell.point, movementOnPlace });
 
     Segment movementOnDestination{ 
-      std::min(path[cellIndex].cell.interval.end, path[cellIndex + 1].cell.interval.end), 
-      path[cellIndex].minTime };
+      path[cellIndex + 1].minTime - 1, // TODO find move cost
+      path[cellIndex + 1].minTime };
     areas.push_back(Area{ path[cellIndex + 1].cell.point, movementOnDestination });
   }
 

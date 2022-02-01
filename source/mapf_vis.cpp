@@ -55,7 +55,7 @@ int main()
 
   // Read map
   SpaceReader reader;
-  std::ifstream spaceFile(TEST_DATA_PATH "/random-32-32-20.map");
+  std::ifstream spaceFile(TEST_DATA_PATH "/empty-16-16.map");
   if (!spaceFile.is_open()) return 1;
 
   std::optional<RawSpace> rawSpace = reader.FromHogFormat(spaceFile);
@@ -84,9 +84,9 @@ int main()
   std::shared_ptr<SpaceTime> space(new SpaceTime(depth, rawSpace.value()));
   
   // Read scenario
-  ScenarioLoader loader(TEST_DATA_PATH "/random-32-32-20-even-1.scen");
+  ScenarioLoader loader(TEST_DATA_PATH "/empty-16-16-even-1.scen");
 
-  int agentsNum = 40;
+  int agentsNum = 51;
   if (agentsNum > loader.GetNumExperiments())
   {
     std::cout << "too many agents, abort\n";
@@ -101,6 +101,8 @@ int main()
 
   for (int i = 0; i < agentsNum; ++i)
   {
+    // TODO add test when agent stands on one place
+
     std::cout << "Planning agent " << i << "... ";
 
     // Prepare agent
@@ -141,18 +143,22 @@ int main()
 
     ArrayType<Node<Area>> path;
     simplePathfinding.CollectPath(destination, path);
-
-    animation << "Agent " << i;
-    for (const Node<Area>& node : path)
-    {
-      animation << " " << node.cell.point.x << " " << node.cell.point.y << " " << std::setprecision(4) << node.minTime;
-    }
-
-    animation << "\n";
-
     ArrayType<Area> inaccessableParts;
     FromPathToFilledAreas(path, inaccessableParts);
     space->MakeAreasInaccessable(inaccessableParts);
+
+    animation << "Agent " << i;
+    animation << " " << inaccessableParts[0].point.x << " " << inaccessableParts[0].point.y << " " << std::setprecision(4) << inaccessableParts[0].interval.start;
+    for (size_t i = 0; i + 1 < inaccessableParts.size(); i += 2)
+    {
+      Area currentArea = inaccessableParts[i];
+      Area nextArea = inaccessableParts[i + 1];
+      assert(nextArea.interval.IsValid());
+      animation << " " << currentArea.point.x << " " << currentArea.point.y << " " << std::setprecision(4) << nextArea.interval.start;
+      animation << " " << nextArea.point.x << " " << nextArea.point.y << " " << std::setprecision(4) << nextArea.interval.end;
+    }
+    animation << " " << inaccessableParts.back().point.x << " " << inaccessableParts.back().point.y << " " << std::setprecision(4) << inaccessableParts.back().interval.end;
+    animation << "\n";
 
     std::cout << "success!\n";
   }

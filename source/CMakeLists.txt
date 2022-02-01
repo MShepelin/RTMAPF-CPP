@@ -1,5 +1,5 @@
 add_library(search 
-	"rmp-all.cpp" 
+	 
 	"space.cpp"
 	"segments.cpp"
 	"heuristic.cpp" 

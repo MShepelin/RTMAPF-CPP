@@ -72,8 +72,6 @@ struct Point
 
 MAKE_HASHABLE(Point, type.x, type.y);
 
-using Shape = ArrayType<Point>;
-
 template<typename CellType>
 struct Node
 {
