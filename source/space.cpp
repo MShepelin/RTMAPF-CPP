@@ -238,3 +238,11 @@ void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& a
   Segment movementOnPlace{ path.back().minTime, path.back().cell.interval.end };
   areas.push_back(Area(path.back().cell.point, movementOnPlace));
 }
+
+SegmentSpace::SegmentSpace()
+  : segmentGrid()
+{ }
+
+SpaceTime::SpaceTime(Time inDepth)
+  : depth(inDepth)
+{ }

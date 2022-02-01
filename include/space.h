@@ -58,25 +58,13 @@ public:
   bool Contains(Point point) const override;
 };
 
-class SpaceReader
-{
-private:
-  MapType<char, Access> symbolToAccess;
-
-  inline bool CheckHogFileStart(std::istream& file, uint32_t& width, uint32_t& height);
-
-public:
-  SpaceReader();
-
-  std::optional<RawSpace> FromHogFormat(std::istream& file);
-};
-
 class SegmentSpace : public Space<Area>
 {
 protected:
   MapType<Point, SegmentHolder> segmentGrid;
 
 public:
+  SegmentSpace();
   SegmentSpace(Time depth, const RawSpace& base);
 
   void SetSegments(Point point, const SegmentHolder& newAccess);
@@ -90,17 +78,16 @@ public:
   void MakeAreasInaccessable(const ArrayType<Area>& areas);
 };
 
-void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& areas);
-
 /**
  * Space that holds time segments limited by [0, depth]
  */
 class SpaceTime : public SegmentSpace
 {
-private:
+protected:
   Time depth;
 
 public:
+  SpaceTime(Time depth);
   SpaceTime(Time depth, const RawSpace& base);
 
   void MoveTime(Time deltaTime);
@@ -109,3 +96,18 @@ public:
 
   // TODO override SetAccess to limit time by [0, depth]
 };
+
+class SpaceReader
+{
+private:
+  MapType<char, Access> symbolToAccess;
+
+  inline bool CheckHogFileStart(std::istream& file, uint32_t& width, uint32_t& height);
+
+public:
+  SpaceReader();
+
+  std::optional<RawSpace> FromHogFormat(std::istream& file);
+};
+
+void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& areas);

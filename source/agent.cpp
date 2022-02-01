@@ -3,7 +3,7 @@
 
 SegmentSpace AgentOperations::MakeSpaceFromAgentShape(const SegmentSpace& base, const Agent& agent)
 {
-  assert(agent.shape.empty());
+  assert(agent.shape.shape.empty());
   // TODO fix for difficult shapes
 
   return base;

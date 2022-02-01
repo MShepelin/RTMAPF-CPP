@@ -1,7 +1,7 @@
 #include "search_types.h"
 #include "segments.h"
 
-Point Point::operator+(Point other)
+Point Point::operator+(Point other) const
 {
   return { x + other.x, y + other.y };
 }

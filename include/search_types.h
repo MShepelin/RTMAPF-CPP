@@ -61,12 +61,12 @@ struct Point
   int x;
   int y;
 
-  Point operator+(Point other);
+  Point operator+(Point other) const;
 
   bool operator==(const Point& other) const;
 
   Point(int inX, int inY);
-  Point(Area area);
+  Point(Area area); // TODO make explicit
   Point();
 };
 

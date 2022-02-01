@@ -79,7 +79,7 @@ struct Area
     return point == other.point && interval == other.interval;
   }
 
-  Area(const Point& inPoint)
+  Area(const Point& inPoint) // TODO make explicit
     : point(inPoint)
     , interval()
   { }
