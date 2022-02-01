@@ -67,7 +67,7 @@ int main()
   {
     for (int j = 0; j < rawSpace.value().GetWidth(); ++j)
     {
-      if (!rawSpace.value().GetAccess({ i, j }) == ACCESSABLE)
+      if (rawSpace.value().GetAccess({ i, j }) != Access::Accessable)
       {
         animation << "@";
       }
@@ -96,7 +96,7 @@ int main()
   for (int i = 0; i < agentsNum; ++i)
   {
     Experiment agent = loader.GetNthExperiment(i);
-    space->SetAccess({ {agent.GetStartX(), agent.GetStartY()}, {0, depth} }, INACCESSABLE);
+    space->SetAccess({ {agent.GetStartX(), agent.GetStartY()}, {0, depth} }, Access::Inaccessable);
   }
 
   for (int i = 0; i < agentsNum; ++i)
@@ -115,7 +115,7 @@ int main()
     Area origin = { start, {0, depth} };
     Area destination = { goal, *iter };
 
-    space->SetAccess(origin, ACCESSABLE);
+    space->SetAccess(origin, Access::Accessable);
 
     // Prepare pathfinding
     ArrayType<Move<Point>> moves =
@@ -129,7 +129,7 @@ int main()
     std::shared_ptr<MovesTestSegment> movesComponent(new MovesTestSegment(moves, space.get()));
 
     std::shared_ptr<EuclideanHeuristic> hpoint(new EuclideanHeuristic(destination.point));
-    std::shared_ptr<Heuristic<Area>> h(new SpaceAdapter(hpoint));
+    std::shared_ptr<Heuristic<Area>> h(new SpaceAdapter<Point, Area>(hpoint));
 
     Pathfinder<Area> simplePathfinding(movesComponent, origin, h);
 

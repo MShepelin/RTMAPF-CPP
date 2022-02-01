@@ -9,14 +9,17 @@ template<class CellType>
 class Heuristic
 {
 public:
+  // TODO write comments to functions and desribe how 
+  // IsCostFound should be used before 
+
   Heuristic() = delete;
   Heuristic(CellType origin) {};
+
+  virtual bool IsCostFound(CellType to) const { return true; };
 
   virtual Time GetCost(CellType to) const { return 0.f; };
 
   virtual void FindCost(CellType to) { };
-
-  virtual bool IsCostFound(CellType to) const { return true; };
 
   virtual CellType GetOrigin() const { return CellType(); }
 
@@ -38,24 +41,24 @@ public:
   virtual void FindCost(Point to);
 };
 
-// TODO create template
-class SpaceAdapter : public Heuristic<Area>
+template<typename FromType, typename ToType>
+class SpaceAdapter : public Heuristic<ToType>
 {
-  std::shared_ptr<Heuristic<Point>> heuristic;
+  std::shared_ptr<Heuristic<FromType>> heuristic;
 
 public:
   SpaceAdapter(std::shared_ptr<Heuristic<Point>> inHeuristic)
     : heuristic(inHeuristic)
-    , Heuristic<Area>(Area{ inHeuristic->GetOrigin() })
+    , Heuristic<ToType>(ToType(inHeuristic->GetOrigin()))
   {}
 
-  virtual bool IsCostFound(Area to) const override { return heuristic->IsCostFound(to.point); };
+  virtual bool IsCostFound(ToType to) const override { return heuristic->IsCostFound(FromType(to)); }
 
-  virtual Time GetCost(Area to) const override { return heuristic->GetCost(to.point); }
+  virtual Time GetCost(ToType to) const override { return heuristic->GetCost(FromType(to)); }
 
-  virtual void FindCost(Area to) override { return heuristic->FindCost(to.point); };
+  virtual void FindCost(ToType to) override { return heuristic->FindCost(FromType(to)); }
 
-  virtual Area GetOrigin() const override { return Area{ heuristic->GetOrigin() }; }
+  virtual ToType GetOrigin() const override { return ToType(heuristic->GetOrigin()); }
 
-  virtual void SetOrigin(Area origin) override { heuristic->SetOrigin(origin.point); }
+  virtual void SetOrigin(ToType origin) override { heuristic->SetOrigin(FromType(origin)); }
 };

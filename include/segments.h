@@ -78,6 +78,21 @@ struct Area
   {
     return point == other.point && interval == other.interval;
   }
+
+  Area(const Point& inPoint)
+    : point(inPoint)
+    , interval()
+  { }
+
+  Area(const Point& inPoint, const Segment& inInterval)
+    : point(inPoint)
+    , interval(inInterval)
+  { }
+
+  Area()
+    : point()
+    , interval()
+  { }
 };
 
 MAKE_HASHABLE(Area, type.point, type.interval);

@@ -44,30 +44,30 @@ inline void hash_combine(std::size_t& seed, const T& v, Rest... rest) {
   hash_combine(seed, rest...);
 }
 
-using Access = uint8_t;
-
-// TODO create static consts
-#define ACCESSABLE 1
-#define INACCESSABLE 0
+enum class Access : uint8_t
+{
+  Accessable = 1,
+  Inaccessable = 0
+};
 
 using Time = float;
 
 #define START_TIME 0.f
+
+struct Area;
 
 struct Point
 {
   int x;
   int y;
 
-  Point operator+(Point other)
-  {
-    return { x + other.x, y + other.y };
-  }
+  Point operator+(Point other);
 
-  bool operator==(const Point& other) const
-  {
-    return x == other.x && y == other.y;
-  }
+  bool operator==(const Point& other) const;
+
+  Point(int inX, int inY);
+  Point(Area area);
+  Point();
 };
 
 MAKE_HASHABLE(Point, type.x, type.y);

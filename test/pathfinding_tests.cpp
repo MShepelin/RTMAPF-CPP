@@ -19,7 +19,7 @@ public:
 
       if (!space->Contains(destination)) continue;
 
-      if (space->GetAccess(destination) == ACCESSABLE)
+      if (space->GetAccess(destination) == Access::Accessable)
       {
         result.push_back({ move.cost, destination});
       }
@@ -83,9 +83,9 @@ public:
 TEST(PathfindingTests, SimpleMap)
 {
   std::shared_ptr<RawSpace> space(new RawSpace(3, 3));
-  space->SetAccess({ 0, 0 }, ACCESSABLE);
-  space->SetAccess({ 0, 1 }, ACCESSABLE);
-  space->SetAccess({ 0, 2 }, ACCESSABLE);
+  space->SetAccess({ 0, 0 }, Access::Accessable);
+  space->SetAccess({ 0, 1 }, Access::Accessable);
+  space->SetAccess({ 0, 2 }, Access::Accessable);
 
   Point origin = { 0, 0 };
   Point destination = { 0, 2 };
@@ -113,9 +113,9 @@ TEST(PathfindingTests, SimpleMap)
 TEST(PathfindingTests, SegmentMap)
 {
   std::shared_ptr<RawSpace> space(new RawSpace(3, 3));
-  space->SetAccess({ 0, 0 }, ACCESSABLE);
-  space->SetAccess({ 0, 1 }, ACCESSABLE);
-  space->SetAccess({ 0, 2 }, ACCESSABLE);
+  space->SetAccess({ 0, 0 }, Access::Accessable);
+  space->SetAccess({ 0, 1 }, Access::Accessable);
+  space->SetAccess({ 0, 2 }, Access::Accessable);
 
   Time depth = 4;
   std::shared_ptr<SegmentSpace> segmentSpace(new SegmentSpace(depth, *space));
@@ -134,7 +134,7 @@ TEST(PathfindingTests, SegmentMap)
   std::shared_ptr<MovesTestSegment> movesComponent(new MovesTestSegment(moves, segmentSpace.get()));
 
   std::shared_ptr<EuclideanHeuristic> hpoint(new EuclideanHeuristic(destination.point));
-  std::shared_ptr<Heuristic<Area>> h(new SpaceAdapter(hpoint));
+  std::shared_ptr<Heuristic<Area>> h(new SpaceAdapter<Point, Area>(hpoint));
 
   Pathfinder<Area> simplePathfinding(movesComponent, origin, h);
 

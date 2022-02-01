@@ -6,21 +6,33 @@
 #include <optional>
 #include <stdexcept>
 
-template<class CellType>
+template<typename CellType>
 class Space
 {
 public:
-  virtual Access GetAccess(CellType cell) const = 0;
-  virtual void SetAccess(CellType cell, Access Access) = 0;
+  /**
+   * If the Space doesn't contain a cell, this cell is inaccessable.
+   * If the Space contains a cell, we can change it's access
+   * (it can also become inaccessable).
+   */
   virtual bool Contains(CellType cell) const = 0;
 
-  virtual ~Space() {};
-};
+  /**
+   * We can attempt to get an access of a cell only if the Space contains it.
+   * Otherwise, the behavoir is undefined.
+   */
+  virtual Access GetAccess(CellType cell) const = 0;
 
-class space_error : public std::runtime_error
-{
-public:
-  explicit space_error(const std::string& what_arg) : std::runtime_error(what_arg) {};
+  /**
+   * We can attempt to set an access of a cell only if the Space contains it.
+   * Otherwise, the behavoir is undefined.
+   */
+  virtual void SetAccess(CellType cell, Access Access) = 0;
+
+  // In order to improve Space efficiency GetAccess and SetAccess don't throw exceptions.
+  // Standard way to check correctness in run-time is to use assert for Debug.
+
+  virtual ~Space() {};
 };
 
 class RawSpace : public Space<Point>

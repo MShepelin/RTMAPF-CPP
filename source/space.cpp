@@ -7,7 +7,7 @@
 RawSpace::RawSpace(uint32_t inWidth, uint32_t inHeight)
   : width(inWidth)
   , height(inHeight)
-  , grid((size_t) inWidth * inHeight, INACCESSABLE)
+  , grid((size_t) inWidth * inHeight, Access::Inaccessable)
 {
 }
 
@@ -18,8 +18,6 @@ Access RawSpace::GetAccess(Point point) const
 
 size_t RawSpace::PointToIndex(Point& point) const
 {
-  // TODO throw exception?
-
   size_t index = point.x + (size_t) point.y * width;
   assert(index < grid.size());
   return index;
@@ -42,14 +40,13 @@ uint32_t RawSpace::GetHeight() const
 
 bool RawSpace::Contains(Point point) const
 {
-  // TODO incapsulate
-  return point.x >= 0 && point.x < (int) width && point.y >= 0 && point.y < (int) height;
+  return point.x >= 0 && (uint32_t) point.x < width && point.y >= 0 && (uint32_t) point.y < height;
 }
 
 SpaceReader::SpaceReader()
   : symbolToAccess({ 
-    {'@', INACCESSABLE}, 
-    {'.', ACCESSABLE} })
+    {'@', Access::Inaccessable}, 
+    {'.', Access::Accessable} })
 {
 }
 
@@ -68,7 +65,7 @@ std::optional<RawSpace> SpaceReader::FromHogFormat(std::istream& file)
     for (int column = 0; column < (int) width; ++column)
     {
       file.get(grid_value);
-      Access newAccess = INACCESSABLE;
+      Access newAccess = Access::Inaccessable;
       if (symbolToAccess.count(grid_value))
       {
         newAccess = symbolToAccess[grid_value];
@@ -144,7 +141,7 @@ SegmentSpace::SegmentSpace(Time depth, const RawSpace& base)
     {
       Point point = { x, y };
 
-      if (base.GetAccess(point) == ACCESSABLE)
+      if (base.GetAccess(point) == Access::Accessable)
       {
         segmentGrid[point] = SegmentHolder(Segment{0, depth});
       }
@@ -172,18 +169,18 @@ Access SegmentSpace::GetAccess(Area cell) const
 {
   assert(Contains(cell));
 
-  return segmentGrid.at(cell.point).Contains(cell.interval) ? ACCESSABLE : INACCESSABLE;
+  return segmentGrid.at(cell.point).Contains(cell.interval) ? Access::Accessable : Access::Inaccessable;
 }
 
 void SegmentSpace::SetAccess(Area cell, Access Access)
 {
   assert(segmentGrid.count(cell.point) > 0);
 
-  if (Access == ACCESSABLE)
+  if (Access == Access::Accessable)
   {
     segmentGrid.at(cell.point).AddSegment(cell.interval);
   }
-  else if (Access == INACCESSABLE)
+  else if (Access == Access::Inaccessable)
   {
     segmentGrid.at(cell.point).RemoveSegment(cell.interval);
   }
@@ -230,14 +227,14 @@ void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& a
   for (size_t cellIndex = 0; cellIndex + 1 < path.size(); ++cellIndex)
   {
     Segment movementOnPlace{ path[cellIndex].minTime, path[cellIndex + 1].minTime };
-    areas.push_back(Area{ path[cellIndex].cell.point, movementOnPlace });
+    areas.push_back(Area(path[cellIndex].cell.point, movementOnPlace));
 
     Segment movementOnDestination{ 
       path[cellIndex + 1].minTime - 1, // TODO find move cost
       path[cellIndex + 1].minTime };
-    areas.push_back(Area{ path[cellIndex + 1].cell.point, movementOnDestination });
+    areas.push_back(Area(path[cellIndex + 1].cell.point, movementOnDestination));
   }
 
   Segment movementOnPlace{ path.back().minTime, path.back().cell.interval.end };
-  areas.push_back(Area{ path.back().cell.point, movementOnPlace });
+  areas.push_back(Area(path.back().cell.point, movementOnPlace));
 }

@@ -12,9 +12,9 @@
 TEST(SpaceTests, Construction)
 {
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, ACCESSABLE);
-  ASSERT_EQ(space.GetAccess({ 2, 2 }), ACCESSABLE);
-  ASSERT_EQ(space.GetAccess({ 1, 1 }), INACCESSABLE);
+  space.SetAccess({ 2, 2 }, Access::Accessable);
+  ASSERT_EQ(space.GetAccess({ 2, 2 }), Access::Accessable);
+  ASSERT_EQ(space.GetAccess({ 1, 1 }), Access::Inaccessable);
   ASSERT_EQ(space.GetHeight(), 3);
   ASSERT_EQ(space.GetWidth(), 3);
 }
@@ -35,8 +35,8 @@ TEST(SpaceTests, ReadHogFormat)
   {
     for (int j = 0; j < squareSize; ++j)
     {
-      // Conversation from location to Access
-      Access correctAccess = (i + j + 1) % 2;
+      Access correctAccess = Access::Inaccessable;
+      if ((i + j + 1) % 2) correctAccess = Access::Accessable;
       Point point{ i, j };
       ASSERT_EQ(space.value().GetAccess(point), correctAccess);
     }
@@ -48,7 +48,7 @@ TEST(SpaceTests, SegmentSpaceConstruction)
   Time depth = 3;
 
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, ACCESSABLE);
+  space.SetAccess({ 2, 2 }, Access::Accessable);
 
   SegmentSpace test(depth, space);
 
@@ -67,8 +67,8 @@ TEST(SpaceTests, MakeAreasInaccessable)
 {
   Time depth = 3;
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, ACCESSABLE);
-  space.SetAccess({ 0, 0 }, ACCESSABLE);
+  space.SetAccess({ 2, 2 }, Access::Accessable);
+  space.SetAccess({ 0, 0 }, Access::Accessable);
   SegmentSpace test(depth, space);
 
   std::vector<Area> removeAreas = { 
@@ -97,8 +97,8 @@ TEST(SpaceTimeTests, MoveTime)
 {
   Time depth = 3;
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, ACCESSABLE);
-  space.SetAccess({ 0, 0 }, ACCESSABLE);
+  space.SetAccess({ 2, 2 }, Access::Accessable);
+  space.SetAccess({ 0, 0 }, Access::Accessable);
   SpaceTime spaceTime(depth, space);
 
   std::vector<Area> removeAreas = {
@@ -362,7 +362,7 @@ TEST(AgentTest, MakeAgentSpace)
   Time depth = 3;
 
   RawSpace baseSpace(3, 3);
-  baseSpace.SetAccess({ 2, 2 }, ACCESSABLE);
+  baseSpace.SetAccess({ 2, 2 }, Access::Accessable);
 
   SegmentSpace space(depth, baseSpace);
 

@@ -14,7 +14,7 @@ Time EuclideanHeuristic::GetCost(Point to) const
   Time deltaX = abs((Time)origin.x - to.x);
   Time deltaY = abs((Time)origin.y - to.y);
 
-  return std::sqrtf(deltaX * deltaX + deltaY * deltaY);
+  return std::sqrt(deltaX * deltaX + deltaY * deltaY);
 }
 
 void EuclideanHeuristic::FindCost(Point to)
