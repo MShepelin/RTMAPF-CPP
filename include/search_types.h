@@ -83,27 +83,36 @@ struct Node
   size_t heapIndex;
   Node<CellType>* parent;
 
-  Node(CellType inCell)
-    : cell(inCell)
-    , minTime(0)
-    , heursticToGoal(-1)
-    , parent(nullptr)
-    , heapIndex(0)
-  { }
+  Node();
+  Node(CellType inCell);
+  Node(CellType inCell, Time inMinTime, Time inHeuristic = -1);
 
-  Node(CellType inCell, Time inMinTime, Time inHeuristic = -1)
-    : cell(inCell)
-    , minTime(inMinTime)
-    , heursticToGoal(inHeuristic)
-    , parent(nullptr)
-    , heapIndex(0)
-  { }
-
-  Node()
-    : cell()
-    , minTime(-1)
-    , heursticToGoal(-1)
-    , parent(nullptr)
-    , heapIndex(0)
-  { }
+  inline void MarkClosed() { heursticToGoal = -1; }
 };
+
+template<typename CellType>
+Node<CellType>::Node(CellType inCell)
+  : cell(inCell)
+  , minTime(0)
+  , heursticToGoal(-1)
+  , parent(nullptr)
+  , heapIndex(0)
+{ }
+
+template<typename CellType>
+Node<CellType>::Node(CellType inCell, Time inMinTime, Time inHeuristic)
+  : cell(inCell)
+  , minTime(inMinTime)
+  , heursticToGoal(inHeuristic)
+  , parent(nullptr)
+  , heapIndex(0)
+{ }
+
+template<typename CellType>
+Node<CellType>::Node()
+  : cell()
+  , minTime(-1)
+  , heursticToGoal(-1)
+  , parent(nullptr)
+  , heapIndex(0)
+{ }

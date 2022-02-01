@@ -57,7 +57,7 @@ public:
 	ScenarioLoader() { scenName[0] = 0; }
 	ScenarioLoader(const char *);
 	void Save(const char *);
-	int GetNumExperiments(){return experiments.size();}
+	size_t GetNumExperiments(){return experiments.size();}
 	const char *GetScenarioName() { return scenName; }
 	Experiment GetNthExperiment(int which)
 	{return experiments[which];}

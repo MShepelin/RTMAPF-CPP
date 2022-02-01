@@ -63,9 +63,9 @@ int main()
   std::cout << "Map is ready\n";
 
   animation << rawSpace.value().GetWidth() << "\n";
-  for (int i = 0; i < rawSpace.value().GetHeight(); ++i)
+  for (int i = 0; i < (int) rawSpace.value().GetHeight(); ++i)
   {
-    for (int j = 0; j < rawSpace.value().GetWidth(); ++j)
+    for (int j = 0; j < (int) rawSpace.value().GetWidth(); ++j)
     {
       if (rawSpace.value().GetAccess({ i, j }) != Access::Accessable)
       {

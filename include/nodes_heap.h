@@ -15,6 +15,8 @@ public:
   using NodeType = Node<CellType>;
 
 protected:
+  // TODO not NodeType* but size_t, node can be moved in dynamic memory 
+  // so we need to store ID, not pointer
   ArrayType<NodeType*> nodes;
 
   // TODO create NodesBinaryHeap.config

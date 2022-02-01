@@ -23,8 +23,6 @@ public:
 
   virtual CellType GetOrigin() const { return CellType(); }
 
-  virtual void SetOrigin(CellType origin) {}
-
   virtual ~Heuristic() {};
 };
 
@@ -59,6 +57,4 @@ public:
   virtual void FindCost(ToType to) override { return heuristic->FindCost(FromType(to)); }
 
   virtual ToType GetOrigin() const override { return ToType(heuristic->GetOrigin()); }
-
-  virtual void SetOrigin(ToType origin) override { heuristic->SetOrigin(FromType(origin)); }
 };

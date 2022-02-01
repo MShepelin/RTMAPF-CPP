@@ -8,13 +8,38 @@
 #include <cassert>
 
 template<typename CellType>
-struct SearchResult
+class SearchResult
 {
-  // TODO encapsulate timer
+private:
+  std::chrono::steady_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 
+  double time = 0;
   size_t nodescreated = 0;
   size_t numberofsteps = 0;
-  double time = 0;
+
+public:
+  inline void IncrementSteps()
+  {
+    numberofsteps++;
+  }
+
+  inline void SetNodesCount(size_t inNodesCount)
+  {
+    nodescreated = inNodesCount;
+  }
+
+  inline void StartTimer()
+  {
+    timer_start = std::chrono::high_resolution_clock::now();
+  }
+
+  inline void StopTimer()
+  {
+    // TODO create timer object which incapsulates duration count like shared pointer
+
+    std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - timer_start;
+    time += duration.count(); // in seconds
+  }
 };
 
 template<typename CellType>
@@ -32,7 +57,7 @@ private:
   std::shared_ptr<Heuristic<CellType>> heuristic;
   std::shared_ptr<MoveComponent<CellType>> moves;
 
-  void ExpandNode(NodeType* node);
+  void ExpandNode(NodeType& node);
 
   virtual void TryToStopSearch(const NodeType& node, CellType searchDestination) {};
 
@@ -42,16 +67,11 @@ public:
     CellType origin,
     std::shared_ptr<Heuristic<CellType>> inHeuristic);
 
+  virtual bool IsCostFound(CellType to) const override;
   virtual Time GetCost(CellType to) const override;
-
   virtual void FindCost(CellType to) override;
 
-  virtual bool IsCostFound(CellType to) const override;
-
-  StatType GetStats() const
-  {
-    return statistics;
-  }
+  StatType GetStats() const { return statistics; }
 
   void CollectPath(CellType to, ArrayType<NodeType>& path) const;
 };
@@ -76,9 +96,9 @@ Pathfinder<CellType>::Pathfinder(
 }
 
 template<typename CellType>
-void Pathfinder<CellType>::ExpandNode(NodeType* node)
+void Pathfinder<CellType>::ExpandNode(NodeType& node)
 {
-  for (auto& validMove : moves->FindValidMoves(*node))
+  for (auto& validMove : moves->FindValidMoves(node))
   {
     const CellType& destination = validMove.destination;
     const Time& cost = validMove.cost;
@@ -98,7 +118,7 @@ void Pathfinder<CellType>::ExpandNode(NodeType* node)
         destination, 
         NodeType(
           destination, 
-          node->minTime + cost,
+          node.minTime + cost,
           heuristic->GetCost(destination)
         )
       });
@@ -107,16 +127,16 @@ void Pathfinder<CellType>::ExpandNode(NodeType* node)
       openNodes.Insert(inserted_node);
 
       // Set the parential node.
-      inserted_node.parent = node;
+      inserted_node.parent = &node;
     }
     else
     {
-      if (potential_node->second.heursticToGoal >= 0 && potential_node->second.minTime > node->minTime + cost)
+      if (potential_node->second.heursticToGoal >= 0 && potential_node->second.minTime > node.minTime + cost)
       {
-        openNodes.ImproveTime(potential_node->second, node->minTime + cost);
+        openNodes.ImproveTime(potential_node->second, node.minTime + cost);
 
         // Change the parential node to the one which is expanded.
-        potential_node->second.parent = node;
+        potential_node->second.parent = &node;
       }
       // If the potential node is in the close list, we never reopen/reexpand it.
     }
@@ -140,32 +160,21 @@ bool Pathfinder<CellType>::IsCostFound(CellType to) const
 template<typename CellType>
 void Pathfinder<CellType>::FindCost(CellType to)
 {
-  if (IsCostFound(to))
-  {
-    return;
-  }
-  
-  auto start = std::chrono::high_resolution_clock::now();
+  statistics.StartTimer();
 
-  while (openNodes.Size() && !IsCostFound(to))
+  while (!IsCostFound(to) && openNodes.Size())
   {
-    statistics.numberofsteps++;
+    statistics.IncrementSteps();
 
-    // Remove expanded node from the heap.
     NodeType* expanded_node = openNodes.PopMin();
+    expanded_node->MarkClosed();
 
-    // Expand the node.
-    ExpandNode(expanded_node);
-
-    // Mark expanded node as a node in the "close" list.
-    expanded_node->heursticToGoal = -1;
-
+    ExpandNode(*expanded_node);
     TryToStopSearch(*expanded_node, to);
   }
 
-  statistics.nodescreated = nodes.size();
-  std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - start;
-  statistics.time += duration.count();
+  statistics.SetNodesCount(nodes.size());
+  statistics.StopTimer();
 }
 
 template<typename CellType>
@@ -178,7 +187,7 @@ void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path) c
     return;
   }
 
-  auto start = std::chrono::high_resolution_clock::now();
+  statistics.StartTimer();
 
   const NodeType* currentNode = &nodes.at(to);
   while (currentNode)
@@ -189,7 +198,5 @@ void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path) c
 
   std::reverse(path.begin(), path.end());
 
-  std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - start;
-  statistics.time += duration.count(); // in seconds
+  statistics.StopTimer();
 }
-
