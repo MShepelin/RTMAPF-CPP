@@ -8,8 +8,8 @@
 
 class MovesTestSegment : public MoveComponent<Area>
 {
-private:
-  SegmentSpace* space;
+protected:
+  ShapeSpace* space;
   ArrayType<Move<Point>> moves;
 
 public:
@@ -24,6 +24,7 @@ public:
     {
       Point destinationPoint = origin.point + move.destination;
 
+      space->UpdateShape(destinationPoint);
       if (!space->ContainsSegmentsIn(destinationPoint)) continue;
       const SegmentHolder& segHolder = space->GetSegments(destinationPoint);
 
@@ -34,7 +35,7 @@ public:
         if (both.IsValid() && both.GetLength() >= move.cost)
         {
           Time overallCost = both.start + move.cost - node.minTime;
-          result.push_back({ overallCost, Area{destinationPoint, segment} });
+          result.push_back({ overallCost, Area{destinationPoint, segment}, move.cost });
         }
       }
     }
@@ -42,7 +43,7 @@ public:
     return result;
   }
 
-  MovesTestSegment(ArrayType<Move<Point>>& inmoves, SegmentSpace* inspace)
+  MovesTestSegment(ArrayType<Move<Point>>& inmoves, ShapeSpace* inspace)
     : space(inspace)
     , moves(inmoves)
   {}
@@ -55,6 +56,10 @@ class Mission
   std::ofstream animation;
   Time depth = 0;
   int agentsNum = 0;
+
+  std::shared_ptr<ShapeSpace> agentSpace;
+  Shape agentShape = { ArrayType<Point>{ {0, 0}, {0, 1}, {0, -1}, {1, 0}, {-1, 0} } };
+  double agentPrintRad = 1;
 
 public:
   Mission(const char* scenariosFileName)
@@ -84,6 +89,7 @@ public:
 
     depth = inDepth;
     space = std::make_shared<SpaceTime>(inDepth, rawSpace.value());
+    agentSpace = std::make_shared<ShapeSpace>(inDepth, space, agentShape);
 
     animation << rawSpace.value().GetWidth() << "\n";
     for (int i = 0; i < (int)rawSpace.value().GetHeight(); ++i)
@@ -135,13 +141,22 @@ public:
       Experiment agent = loader.GetNthExperiment(i);
       Point start = { agent.GetStartX(), agent.GetStartY() };
       Point goal = { agent.GetGoalX(), agent.GetGoalY() };
-
-      const SegmentHolder& segHolder = space->GetSegments(goal);
-      const auto iter = --segHolder.end(); // todo assert if any exists
       Area origin = { start, {0, depth} };
-      Area destination = { goal, *iter };
 
       space->SetAccess(origin, Access::Accessable);
+      agentSpace = std::make_shared<ShapeSpace>(depth, space, agentShape);
+      agentSpace->UpdateShape(start);
+      agentSpace->UpdateShape(goal);
+
+      const SegmentHolder& segHolder = agentSpace->GetSegments(goal);
+      if (segHolder.end() == segHolder.begin())
+      {
+        std::cout << "One agent sits on the goal of another\n";
+        return 1;
+      }
+
+      const auto iter = --segHolder.end();
+      Area destination = { goal, *iter };
 
       // Prepare pathfinding
       ArrayType<Move<Point>> moves =
@@ -152,7 +167,8 @@ public:
         Move<Point>{ 1, {-1, 0}},
       };
 
-      std::shared_ptr<MovesTestSegment> movesComponent(new MovesTestSegment(moves, space.get()));
+      
+      std::shared_ptr<MovesTestSegment> movesComponent(new MovesTestSegment(moves, agentSpace.get()));
 
       std::shared_ptr<EuclideanHeuristic> hpoint(new EuclideanHeuristic(destination.point));
       std::shared_ptr<Heuristic<Area>> h(new SpaceAdapter<Point, Area>(hpoint));
@@ -170,21 +186,26 @@ public:
       ArrayType<Node<Area>> path;
       simplePathfinding.CollectPath(destination, path);
       ArrayType<Area> inaccessableParts;
-      FromPathToFilledAreas(path, inaccessableParts);
+      FromPathToFilledAreas(path, agentShape, inaccessableParts);
       space->MakeAreasInaccessable(inaccessableParts);
 
-      animation << "Agent " << i;
-      animation << " " << inaccessableParts[0].point.x << " " << inaccessableParts[0].point.y << " " << std::setprecision(4) << inaccessableParts[0].interval.start;
-      for (size_t i = 0; i + 1 < inaccessableParts.size(); i += 2)
+      animation << "Agent " << i << " " << agentPrintRad;
+
+      Area firstCell = path[0].cell;
+      for (size_t i = 0; i + 1 < path.size(); ++i)
       {
-        Area currentArea = inaccessableParts[i];
-        Area nextArea = inaccessableParts[i + 1];
-        assert(nextArea.interval.IsValid());
-        animation << " " << currentArea.point.x << " " << currentArea.point.y << " " << std::setprecision(4) << nextArea.interval.start;
-        animation << " " << nextArea.point.x << " " << nextArea.point.y << " " << std::setprecision(4) << nextArea.interval.end;
+        Area currentArea = path[i].cell;
+        animation << " " << currentArea.point.x << " " << currentArea.point.y << " " << std::setprecision(4) << path[i].minTime;
+
+        Time finishWaiting = path[i + 1].minTime - path[i + 1].arrivalCost;
+        if (finishWaiting > path[i].minTime)
+        {
+          animation << " " << currentArea.point.x << " " << currentArea.point.y << " " << std::setprecision(4) << path[i + 1].minTime - path[i + 1].arrivalCost;
+        }
       }
-      animation << " " << inaccessableParts.back().point.x << " " << inaccessableParts.back().point.y << " " << std::setprecision(4) << inaccessableParts.back().interval.end;
-      animation << "\n";
+      Area lastCell = path.back().cell;
+      animation << " " << lastCell.point.x << " " << lastCell.point.y << " " << std::setprecision(4) << path.back().minTime;
+      animation << " " << lastCell.point.x << " " << lastCell.point.y << " " << std::setprecision(4) << lastCell.interval.end << "\n";
 
       std::cout << "success!\n";
     }
@@ -195,7 +216,7 @@ public:
 
 int main()
 {
-  Mission mission(TEST_DATA_PATH "/empty-16-16-even-1.scen");
+  Mission mission(TEST_DATA_PATH "/empty-16-16-big-agents.scen");
 
   if (mission.InitAnimation(TEST_DATA_PATH "/animation.txt"))
   {
@@ -212,7 +233,8 @@ int main()
   }
   std::cout << "ReadSpace ok\n";
 
-  if (mission.InitAgents(51))
+
+  if (mission.InitAgents(5))
   {
     std::cout << "InitAgents failed\n";
     return 1;

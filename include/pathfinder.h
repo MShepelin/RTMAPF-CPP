@@ -7,6 +7,8 @@
 #include <chrono>
 #include <cassert>
 
+#include <iostream>
+
 template<typename CellType>
 class SearchResult
 {
@@ -124,6 +126,7 @@ void Pathfinder<CellType>::ExpandNode(NodeType& node)
       });
 
       NodeType& inserted_node = insert_result.first->second;
+      inserted_node.arrivalCost = validMove.arrivalCost;
       openNodes.Insert(inserted_node);
 
       // Set the parential node.
@@ -193,6 +196,7 @@ void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path) c
   while (currentNode)
   {
     path.push_back(NodeType(currentNode->cell, currentNode->minTime, currentNode->heursticToGoal));
+    path.back().arrivalCost = currentNode->arrivalCost;
     currentNode = currentNode->parent;
   }
 

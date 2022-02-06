@@ -220,25 +220,6 @@ void SpaceTime::MoveTime(Time deltaTime)
   }
 }
 
-void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& areas)
-{
-  areas.clear();
-
-  for (size_t cellIndex = 0; cellIndex + 1 < path.size(); ++cellIndex)
-  {
-    Segment movementOnPlace{ path[cellIndex].minTime, path[cellIndex + 1].minTime };
-    areas.push_back(Area(path[cellIndex].cell.point, movementOnPlace));
-
-    Segment movementOnDestination{ 
-      path[cellIndex + 1].minTime - 1, // TODO find move cost
-      path[cellIndex + 1].minTime };
-    areas.push_back(Area(path[cellIndex + 1].cell.point, movementOnDestination));
-  }
-
-  Segment movementOnPlace{ path.back().minTime, path.back().cell.interval.end };
-  areas.push_back(Area(path.back().cell.point, movementOnPlace));
-}
-
 SegmentSpace::SegmentSpace()
   : segmentGrid()
 { }

@@ -3,6 +3,7 @@
 #include "search_types.h"
 #include "space.h"
 #include "unordered_set"
+#include <memory>
 
 struct Shape
 {
@@ -26,3 +27,5 @@ public:
 
   void UpdateShape(Point point);
 };
+
+void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, const Shape& shape, ArrayType<Area>& areas);

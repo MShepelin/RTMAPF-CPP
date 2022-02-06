@@ -24,6 +24,8 @@ void ShapeSpace::UpdateShape(Point point)
     return;
   }
 
+  pointCache.insert(point);
+
   ArrayType<Point> joinedPoints = shape.ApplyShapeTo(point);
 
   bool contains = true;
@@ -46,5 +48,29 @@ void ShapeSpace::UpdateShape(Point point)
   {
     const SegmentHolder& segments = originalSpace->GetSegments(originalSpacePoint);
     segmentGrid[point] = segmentGrid[point] & segments;
+  }
+}
+
+void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, const Shape& shape, ArrayType<Area>& areas)
+{
+  areas.clear();
+
+  for (size_t cellIndex = 0; cellIndex + 1 < path.size(); ++cellIndex)
+  {
+    Segment movementOnPlace{ path[cellIndex].minTime - path[cellIndex].arrivalCost, path[cellIndex + 1].minTime };
+
+    for (const Point& deltaPoint : shape.shape)
+    {
+      Point spacePointFrom = path[cellIndex].cell.point + deltaPoint;
+      areas.push_back(Area(spacePointFrom, movementOnPlace));
+    }
+  }
+
+  Segment movementOnPlace{ path.back().minTime - path.back().arrivalCost, path.back().cell.interval.end };
+
+  for (const Point& deltaPoint : shape.shape)
+  {
+    Point spacePointFrom = path.back().cell.point + deltaPoint;
+    areas.push_back(Area(spacePointFrom, movementOnPlace));
   }
 }

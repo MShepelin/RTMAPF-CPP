@@ -109,5 +109,3 @@ public:
 
   std::optional<RawSpace> FromHogFormat(std::istream& file);
 };
-
-void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, ArrayType<Area>& areas);

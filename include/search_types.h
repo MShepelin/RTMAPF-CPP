@@ -82,6 +82,7 @@ struct Node
   Time  minTime, heursticToGoal;
   size_t heapIndex;
   Node<CellType>* parent;
+  Time arrivalCost = 0;
 
   Node();
   Node(CellType inCell);

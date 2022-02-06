@@ -69,7 +69,10 @@ class Agent:
         parse = agent_path_line.split()
         # parse[0] == "Agent"
         # parse[1] == agent_ID
-        parsed_locations = list(map(int, parse[2:]))
+        # parse[2] == radius
+        self.rad = float(parse[2])
+
+        parsed_locations = list(map(int, parse[3:]))
         for i in range(0, len(parsed_locations), 3):
             self.path_.append(
                 (parsed_locations[i] * cell_width,
@@ -123,7 +126,7 @@ class Agent:
         if not self.visible_:
             return
 
-        pygame.draw.circle(win, self.color_, (self.x_ + self.gap_ // 2, self.y_ + self.gap_ // 2), RAD * self.gap_)
+        pygame.draw.circle(win, self.color_, (self.x_ + self.gap_ // 2, self.y_ + self.gap_ // 2), self.rad * self.gap_)
 
 
 def main(win, width):
