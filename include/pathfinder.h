@@ -7,8 +7,6 @@
 #include <chrono>
 #include <cassert>
 
-#include <iostream>
-
 template<typename CellType>
 class SearchResult
 {
