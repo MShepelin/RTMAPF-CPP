@@ -45,7 +45,7 @@ public:
 template<typename CellType>
 class Pathfinder : public Heuristic<CellType>
 {
-private:
+protected:
   using NodeType = Node<CellType>;
   using StatType = SearchResult<CellType>;
 
@@ -57,9 +57,10 @@ private:
   std::shared_ptr<Heuristic<CellType>> heuristic;
   std::shared_ptr<MoveComponent<CellType>> moves;
 
-  void ExpandNode(NodeType& node);
-
   virtual void TryToStopSearch(const NodeType& node, CellType searchDestination) {};
+
+protected:
+  void ExpandNode(NodeType& node);
 
 public:
   Pathfinder(
@@ -77,6 +78,35 @@ public:
 };
 
 template<typename CellType>
+class WindowedPathfinder : public Pathfinder<CellType>
+{
+protected:
+  Time depth;
+
+protected:
+  virtual void TryToStopSearch(const NodeType& node, CellType searchDestination) override
+  {
+    if (node.minTime >= depth)
+    {
+      nodes[searchDestination] = node;
+    }
+  }
+
+public:
+  WindowedPathfinder(
+     std::shared_ptr<MoveComponent<CellType>> inMoves
+    , CellType origin
+    , std::shared_ptr<Heuristic<CellType>> inHeuristic
+    , Time inDepth
+  )
+    : Pathfinder(inMoves, origin, inHeuristic)
+    , depth(inDepth)
+  {
+    assert(depth > 0);
+  }
+};
+
+template<typename CellType>
 Pathfinder<CellType>::Pathfinder(
   std::shared_ptr<MoveComponent<CellType>> inMoves, 
   CellType origin,
@@ -86,13 +116,16 @@ Pathfinder<CellType>::Pathfinder(
   , moves(inMoves)
   , openNodes(true)
   , heuristic(inHeuristic)
-{ 
+{
+  /*
   heuristic->FindCost(origin);
   if (heuristic->IsCostFound(origin))
   {
-    nodes[origin] = Node<CellType>(origin, Time(0), heuristic->GetCost(origin));
-    openNodes.Insert(nodes[origin]);
-  }
+    
+  }*/
+
+  nodes[origin] = Node<CellType>(origin, Time(0), 0);
+  openNodes.Insert(nodes[origin]);
 }
 
 template<typename CellType>
@@ -167,11 +200,11 @@ void Pathfinder<CellType>::FindCost(CellType to)
   {
     statistics.IncrementSteps();
 
-    NodeType* expanded_node = openNodes.PopMin();
-    expanded_node->MarkClosed();
+    NodeType& expanded_node = *openNodes.PopMin();
+    expanded_node.MarkClosed();
 
-    ExpandNode(*expanded_node);
-    TryToStopSearch(*expanded_node, to);
+    ExpandNode(expanded_node);
+    TryToStopSearch(expanded_node, to);
   }
 
   statistics.SetNodesCount(nodes.size());

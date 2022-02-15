@@ -93,6 +93,11 @@ struct Area
     : point()
     , interval()
   { }
+
+  static Area FromDepth(Point point, Time depth)
+  {
+    return Area(point, { depth, depth });
+  }
 };
 
 MAKE_HASHABLE(Area, type.point, type.interval);

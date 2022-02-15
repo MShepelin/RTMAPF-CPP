@@ -3,7 +3,7 @@
 import pygame
 import datetime
 
-WIDTH = 640
+WIDTH = 1000
 RAD = 0.3
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("MAPF Visualisation")
@@ -72,12 +72,12 @@ class Agent:
         # parse[2] == radius
         self.rad = float(parse[2])
 
-        parsed_locations = list(map(int, parse[3:]))
+        parsed_locations = parse[3:]
         for i in range(0, len(parsed_locations), 3):
             self.path_.append(
-                (parsed_locations[i] * cell_width,
-                 parsed_locations[i + 1] * cell_width,
-                 parsed_locations[i + 2]))
+                (int(parsed_locations[i]) * cell_width,
+                 int(parsed_locations[i + 1]) * cell_width,
+                 float(parsed_locations[i + 2])))
 
         color_delta = int(parse[1])
         self.color_ = agent_colors[color_delta % len(agent_colors)]
@@ -107,6 +107,9 @@ class Agent:
             while self.path_index_ >= 1 and self.path_[self.path_index_][2] > self.time_:
                 self.path_index_ -= 1
 
+        if self.path_index_ >= len(self.path_) - 1:
+            path_index_ = len(self.path_) - 1
+            
         next_cell = self.path_[self.path_index_ + 1]
         cur_cell = self.path_[self.path_index_]
 
