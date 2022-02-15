@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <iomanip>
+#include <cmath>
 
 class MovesTestSegment : public MoveComponent<Area>
 {
@@ -165,6 +166,10 @@ public:
         Move<Point>{ 1, {0, -1}},
         Move<Point>{ 1, {1, 0}},
         Move<Point>{ 1, {-1, 0}},
+        Move<Point>{ std::sqrt(2.f), {1, 1}},
+        Move<Point>{ std::sqrt(2.f), {-1, -1}},
+        Move<Point>{ std::sqrt(2.f), {1, -1}},
+        Move<Point>{ std::sqrt(2.f), {-1, 1}},
       };
 
       
