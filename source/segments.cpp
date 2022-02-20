@@ -36,7 +36,7 @@ bool Segment::operator==(const Segment& other) const
   return start == other.start && end == other.end;
 }
 
-std::vector<Segment> Segment::operator-(const Segment& segment) const
+ArrayType<Segment> Segment::operator-(const Segment& segment) const
 {
   if (!segment.IsValid())
   {
@@ -45,7 +45,7 @@ std::vector<Segment> Segment::operator-(const Segment& segment) const
 
   Segment commonSegment = operator&(segment);
 
-  std::vector<Segment> result;
+  ArrayType<Segment> result;
 
   if (commonSegment.start > start)
   {
@@ -62,6 +62,11 @@ std::vector<Segment> Segment::operator-(const Segment& segment) const
 Segment Segment::Invalid()
 { 
   return Segment{ 1, -1 }; 
+}
+
+bool SegmentHolder::Contains(Segment segment) const
+{
+  return (segments.count(segment) > 0);
 }
 
 void SegmentHolder::AddSegment(Segment newSegment)

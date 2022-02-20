@@ -7,25 +7,23 @@
 RawSpace::RawSpace(uint32_t inWidth, uint32_t inHeight)
   : width(inWidth)
   , height(inHeight)
-  , grid((size_t) inWidth * inHeight, INACCESSABLE)
+  , grid((size_t) inWidth * inHeight, Access::Inaccessable)
 {
 }
 
-const Access& RawSpace::GetAccess(Point point) const
+Access RawSpace::GetAccess(Point point) const
 {
   return grid[PointToIndex(point)];
 }
 
 size_t RawSpace::PointToIndex(Point& point) const
 {
-  // TODO throw exception?
-
   size_t index = point.x + (size_t) point.y * width;
   assert(index < grid.size());
   return index;
 }
 
-void RawSpace::SetAccess(Point point, const Access& newAccess)
+void RawSpace::SetAccess(Point point, Access newAccess)
 {
   grid[PointToIndex(point)] = newAccess;
 }
@@ -42,14 +40,13 @@ uint32_t RawSpace::GetHeight() const
 
 bool RawSpace::Contains(Point point) const
 {
-  // TODO incapsulate
-  return point.x < width && point.y < height;
+  return point.x >= 0 && (uint32_t) point.x < width && point.y >= 0 && (uint32_t) point.y < height;
 }
 
 SpaceReader::SpaceReader()
   : symbolToAccess({ 
-    {'@', INACCESSABLE}, 
-    {'.', ACCESSABLE} })
+    {'@', Access::Inaccessable}, 
+    {'.', Access::Accessable} })
 {
 }
 
@@ -63,12 +60,12 @@ std::optional<RawSpace> SpaceReader::FromHogFormat(std::istream& file)
   RawSpace readSpace(width, height);
 
   char grid_value;
-  for (uint32_t row = 0; row < height; ++row)
+  for (int row = 0; row < (int) height; ++row)
   {
-    for (uint32_t column = 0; column < width; ++column)
+    for (int column = 0; column < (int) width; ++column)
     {
       file.get(grid_value);
-      Access newAccess = INACCESSABLE;
+      Access newAccess = Access::Inaccessable;
       if (symbolToAccess.count(grid_value))
       {
         newAccess = symbolToAccess[grid_value];
@@ -118,17 +115,18 @@ bool SpaceReader::CheckHogFileStart(std::istream& file, uint32_t& width, uint32_
   return true;
 }
 
-const SegmentHolder& SegmentSpace::GetAccess(Point point) const
+const SegmentHolder& SegmentSpace::GetSegments(Point point) const
 {
+  assert(ContainsSegmentsIn(point));
   return segmentGrid.at(point);
 }
 
-void SegmentSpace::SetAccess(Point point, const SegmentHolder & newAccess)
+void SegmentSpace::SetSegments(Point point, const SegmentHolder & newAccess)
 { 
   segmentGrid[point] = newAccess;
 }
 
-bool SegmentSpace::Contains(Point point) const
+bool SegmentSpace::ContainsSegmentsIn(Point point) const
 {
   return segmentGrid.count(point) > 0;
 }
@@ -137,13 +135,13 @@ SegmentSpace::SegmentSpace(Time depth, const RawSpace& base)
 {
   assert(depth > 0);
 
-  for (uint32_t x = 0; x < base.GetWidth(); ++x)
+  for (int x = 0; x < (int) base.GetWidth(); ++x)
   {
-    for (uint32_t y = 0; y < base.GetHeight(); ++y)
+    for (int y = 0; y < (int) base.GetHeight(); ++y)
     {
       Point point = { x, y };
 
-      if (base.GetAccess(point) == ACCESSABLE)
+      if (base.GetAccess(point) == Access::Accessable)
       {
         segmentGrid[point] = SegmentHolder(Segment{0, depth});
       }
@@ -155,7 +153,7 @@ void SegmentSpace::MakeAreasInaccessable(const std::vector<Area>& areas)
 {
   for (const Area& area : areas)
   {
-    if (!Contains(area.point))
+    if (!ContainsSegmentsIn(area.point))
     {
       continue;
     }
@@ -165,6 +163,37 @@ void SegmentSpace::MakeAreasInaccessable(const std::vector<Area>& areas)
     // If segment holder becomes empty, it is still contained inside the SegmentSpace,
     // because in future it may be needed to add accessable intervals there
   }
+}
+
+Access SegmentSpace::GetAccess(Area cell) const
+{
+  assert(Contains(cell));
+
+  return segmentGrid.at(cell.point).Contains(cell.interval) ? Access::Accessable : Access::Inaccessable;
+}
+
+void SegmentSpace::SetAccess(Area cell, Access Access)
+{
+  assert(segmentGrid.count(cell.point) > 0);
+
+  if (Access == Access::Accessable)
+  {
+    segmentGrid.at(cell.point).AddSegment(cell.interval);
+  }
+  else if (Access == Access::Inaccessable)
+  {
+    segmentGrid.at(cell.point).RemoveSegment(cell.interval);
+  }
+}
+
+bool SegmentSpace::Contains(Area cell) const
+{
+  if (segmentGrid.count(cell.point) == 0)
+  {
+    return false;
+  }
+
+  return segmentGrid.at(cell.point).Contains(cell.interval);
 }
 
 SpaceTime::SpaceTime(Time inDepth, const RawSpace& base)
@@ -190,3 +219,11 @@ void SpaceTime::MoveTime(Time deltaTime)
     segment.AddSegment({std::max(0.f, depth - deltaTime), depth});
   }
 }
+
+SegmentSpace::SegmentSpace()
+  : segmentGrid()
+{ }
+
+SpaceTime::SpaceTime(Time inDepth)
+  : depth(inDepth)
+{ }

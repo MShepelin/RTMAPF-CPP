@@ -1,7 +1,6 @@
 #pragma once
 
 #include "search_types.h"
-#include <set>
 
 /**
  * Segment desribes time from the start to the end including both points.
@@ -34,13 +33,18 @@ struct Segment
   bool operator<(const Segment& other) const;
 
   bool operator==(const Segment& other) const;
+
+  Time GetLength() const { //TODO move to cpp
+    return end - start; }
 };
+
+MAKE_HASHABLE(Segment, type.start, type.end);
 
 class SegmentHolder
 {
 private:
-  std::set<Segment> segments;
-  using const_iterator = std::set<Segment>::const_iterator;
+  SetType<Segment> segments;
+  using const_iterator = SetType<Segment>::const_iterator;
 
 public:
   SegmentHolder();
@@ -60,12 +64,40 @@ public:
   const_iterator end() const;
 
   bool operator==(const SegmentHolder& other) const;
-
   void operator-=(Time deltaTime);
+
+  bool Contains(Segment segment) const;
 };
 
 struct Area
 {
   Point point;
   Segment interval;
+
+  bool operator==(const Area& other) const
+  {
+    return point == other.point && interval == other.interval;
+  }
+
+  Area(const Point& inPoint) // TODO make explicit
+    : point(inPoint)
+    , interval()
+  { }
+
+  Area(const Point& inPoint, const Segment& inInterval)
+    : point(inPoint)
+    , interval(inInterval)
+  { }
+
+  Area()
+    : point()
+    , interval()
+  { }
+
+  static Area FromDepth(Point point, Time depth)
+  {
+    return Area(point, { depth, depth });
+  }
 };
+
+MAKE_HASHABLE(Area, type.point, type.interval);

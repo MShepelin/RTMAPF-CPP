@@ -3,14 +3,19 @@
 #include "agent.h"
 #include <fstream>
 #include <sstream>
+#include <optional>
+#include "nodes_heap.h"
+#include "shapes.h"
 #include <gtest/gtest.h>
+
+// TODO add segment & operation with dots (for example, {0, 0} and {-1, 1})
 
 TEST(SpaceTests, Construction)
 {
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, ACCESSABLE);
-  ASSERT_EQ(space.GetAccess({ 2, 2 }), ACCESSABLE);
-  ASSERT_EQ(space.GetAccess({ 1, 1 }), INACCESSABLE);
+  space.SetAccess({ 2, 2 }, Access::Accessable);
+  ASSERT_EQ(space.GetAccess({ 2, 2 }), Access::Accessable);
+  ASSERT_EQ(space.GetAccess({ 1, 1 }), Access::Inaccessable);
   ASSERT_EQ(space.GetHeight(), 3);
   ASSERT_EQ(space.GetWidth(), 3);
 }
@@ -24,15 +29,15 @@ TEST(SpaceTests, ReadHogFormat)
   std::optional<RawSpace> space = reader.FromHogFormat(file);
   ASSERT_TRUE(space.has_value());
 
-  uint32_t squareSize = 4;
+  int squareSize = 4;
   ASSERT_EQ(space.value().GetHeight(), 4);
   ASSERT_EQ(space.value().GetWidth(), 4);
-  for (uint32_t i = 0; i < squareSize; ++i)
+  for (int i = 0; i < squareSize; ++i)
   {
-    for (uint32_t j = 0; j < squareSize; ++j)
+    for (int j = 0; j < squareSize; ++j)
     {
-      // Conversation from location to Access
-      Access correctAccess = (i + j + 1) % 2;
+      Access correctAccess = Access::Inaccessable;
+      if ((i + j + 1) % 2) correctAccess = Access::Accessable;
       Point point{ i, j };
       ASSERT_EQ(space.value().GetAccess(point), correctAccess);
     }
@@ -44,27 +49,27 @@ TEST(SpaceTests, SegmentSpaceConstruction)
   Time depth = 3;
 
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, ACCESSABLE);
+  space.SetAccess({ 2, 2 }, Access::Accessable);
 
   SegmentSpace test(depth, space);
 
-  ASSERT_TRUE(test.Contains({ 2, 2 }));
-  ASSERT_FALSE(test.Contains({ 1, 1 }));
+  ASSERT_TRUE(test.ContainsSegmentsIn({ 2, 2 }));
+  ASSERT_FALSE(test.ContainsSegmentsIn({ 1, 1 }));
 
   Segment ans = Segment{ 0, 3 };
-  ASSERT_EQ(test.GetAccess({ 2, 2 }), ans);
+  ASSERT_EQ(test.GetSegments({ 2, 2 }), ans);
 
   SegmentHolder newHolder({ -1, 4 });
-  test.SetAccess({ 1, 1 }, newHolder);
-  ASSERT_EQ(test.GetAccess({ 1, 1 }), newHolder);
+  test.SetSegments({ 1, 1 }, newHolder);
+  ASSERT_EQ(test.GetSegments({ 1, 1 }), newHolder);
 }
 
 TEST(SpaceTests, MakeAreasInaccessable)
 {
   Time depth = 3;
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, ACCESSABLE);
-  space.SetAccess({ 0, 0 }, ACCESSABLE);
+  space.SetAccess({ 2, 2 }, Access::Accessable);
+  space.SetAccess({ 0, 0 }, Access::Accessable);
   SegmentSpace test(depth, space);
 
   std::vector<Area> removeAreas = { 
@@ -81,20 +86,20 @@ TEST(SpaceTests, MakeAreasInaccessable)
   SegmentHolder result2;
   result2.AddSegment({ 0, 2 });
 
-  ASSERT_TRUE(test.Contains({ 2, 2 }));
-  ASSERT_TRUE(test.Contains({ 0, 0 }));
-  ASSERT_FALSE(test.Contains({ 1, 1 }));
+  ASSERT_TRUE(test.ContainsSegmentsIn({ 2, 2 }));
+  ASSERT_TRUE(test.ContainsSegmentsIn({ 0, 0 }));
+  ASSERT_FALSE(test.ContainsSegmentsIn({ 1, 1 }));
 
-  ASSERT_EQ(test.GetAccess({ 0, 0 }), result1);
-  ASSERT_EQ(test.GetAccess({ 2, 2 }), result2);
+  ASSERT_EQ(test.GetSegments({ 0, 0 }), result1);
+  ASSERT_EQ(test.GetSegments({ 2, 2 }), result2);
 }
 
 TEST(SpaceTimeTests, MoveTime)
 {
   Time depth = 3;
   RawSpace space(3, 3);
-  space.SetAccess({ 2, 2 }, ACCESSABLE);
-  space.SetAccess({ 0, 0 }, ACCESSABLE);
+  space.SetAccess({ 2, 2 }, Access::Accessable);
+  space.SetAccess({ 0, 0 }, Access::Accessable);
   SpaceTime spaceTime(depth, space);
 
   std::vector<Area> removeAreas = {
@@ -112,8 +117,8 @@ TEST(SpaceTimeTests, MoveTime)
   SegmentHolder result2;
   result2.AddSegment({ 1, 3 });
 
-  ASSERT_EQ(spaceTime.GetAccess({ 0, 0 }), result1);
-  ASSERT_EQ(spaceTime.GetAccess({ 2, 2 }), result2);
+  ASSERT_EQ(spaceTime.GetSegments({ 0, 0 }), result1);
+  ASSERT_EQ(spaceTime.GetSegments({ 2, 2 }), result2);
 }
 
 TEST(SegmentsTests, Intersection)
@@ -358,24 +363,57 @@ TEST(AgentTest, MakeAgentSpace)
   Time depth = 3;
 
   RawSpace baseSpace(3, 3);
-  baseSpace.SetAccess({ 2, 2 }, ACCESSABLE);
+  baseSpace.SetAccess({ 2, 2 }, Access::Accessable);
 
-  SegmentSpace space(depth, baseSpace);
+  std::shared_ptr<SegmentSpace> space = std::make_shared< SegmentSpace>(depth, baseSpace);
 
-  SegmentSpace newSpace = AgentOperations::MakeSpaceFromAgentShape(space, agent);
+  Shape shape = { ArrayType<Point>{ {0, 0}} };
+  ShapeSpace newSpace(depth, space, shape);
 
-  for (uint32_t x = 0; x < 4; ++x)
+  for (int x = 0; x < 4; ++x)
   {
-    for (uint32_t y = 0; y < 4; ++y)
+    for (int y = 0; y < 4; ++y)
     {
       Point point{ x, y };
-      ASSERT_EQ(newSpace.Contains(point), space.Contains(point));
-      if (!newSpace.Contains(point)) continue;
+      newSpace.UpdateShape(point);
+      ASSERT_EQ(newSpace.ContainsSegmentsIn(point), space->ContainsSegmentsIn(point));
+      if (!newSpace.ContainsSegmentsIn(point)) continue;
 
-      ASSERT_EQ(newSpace.GetAccess(point), space.GetAccess(point));
+      ASSERT_EQ(newSpace.GetSegments(point), space->GetSegments(point));
     }
   }
 }
+
+TEST(NodesBinaryHeap, CheckTies)
+{
+  NodesBinaryHeap<int> heap(true);
+  std::vector<Node<int>> check = {
+      { 8, 10, 5 },
+      { 3, 3, 3 },
+      { 6, 0, 8 },
+      { 1, 3, 2 },
+      { 0, 1, 0 },
+      { 2, 2, 3 },
+      { 9, 5, 10 },
+      { 7, 9, 1 },
+      { 5, 4, 4 },
+      { 4, 5, 3 }
+  };
+
+  for (auto& i : check)
+  {
+    heap.Insert(i);
+  }
+
+  int counter = 0;
+  while (heap.Size())
+  {
+    Node<int>* node = heap.PopMin();
+    EXPECT_EQ(node->cell, counter);
+    counter++;
+  }
+}
+
 
 int main(int argc, char* argv[])
 {
