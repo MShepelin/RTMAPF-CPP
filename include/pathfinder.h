@@ -120,9 +120,7 @@ Pathfinder<CellType>::Pathfinder(
   /*
   heuristic->FindCost(origin);
   if (heuristic->IsCostFound(origin))
-  {
-    
-  }*/
+  { }*/
 
   nodes[origin] = Node<CellType>(origin, Time(0), 0);
   openNodes.Insert(nodes[origin]);
@@ -134,7 +132,6 @@ void Pathfinder<CellType>::ExpandNode(NodeType& node)
   for (auto& validMove : moves->FindValidMoves(node))
   {
     const CellType& destination = validMove.destination;
-    const Time& cost = validMove.cost;
 
     // Check if a potential node exists
     auto potential_node = nodes.find(destination);
@@ -148,16 +145,16 @@ void Pathfinder<CellType>::ExpandNode(NodeType& node)
 
       // Create a new node.
       auto insert_result = nodes.insert({ 
-        destination, 
-        NodeType(
-          destination, 
-          node.minTime + cost,
-          heuristic->GetCost(destination)
+          destination
+        , NodeType(
+            destination
+          , node.minTime + validMove.waitCost + validMove.moveCost
+          , heuristic->GetCost(destination)
+          , validMove.moveCost
         )
       });
 
       NodeType& inserted_node = insert_result.first->second;
-      inserted_node.arrivalCost = validMove.arrivalCost;
       openNodes.Insert(inserted_node);
 
       // Set the parential node.
@@ -165,9 +162,10 @@ void Pathfinder<CellType>::ExpandNode(NodeType& node)
     }
     else
     {
-      if (potential_node->second.heursticToGoal >= 0 && potential_node->second.minTime > node.minTime + cost)
+      Time nodeMinTime = node.minTime + validMove.waitCost + validMove.moveCost;
+      if (potential_node->second.heursticToGoal >= 0 && potential_node->second.minTime > nodeMinTime)
       {
-        openNodes.ImproveTime(potential_node->second, node.minTime + cost);
+        openNodes.ImproveTime(potential_node->second, nodeMinTime);
 
         // Change the parential node to the one which is expanded.
         potential_node->second.parent = &node;
@@ -226,11 +224,14 @@ void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path) c
   const NodeType* currentNode = &nodes.at(to);
   while (currentNode)
   {
-    path.push_back(NodeType(currentNode->cell, currentNode->minTime, currentNode->heursticToGoal));
-    path.back().arrivalCost = currentNode->arrivalCost;
+    path.push_back(NodeType(
+        currentNode->cell
+      , currentNode->minTime
+      , currentNode->heursticToGoal
+      , currentNode->arrivalCost
+    ));
     currentNode = currentNode->parent;
   }
-
   std::reverse(path.begin(), path.end());
 
   statistics.StopTimer();

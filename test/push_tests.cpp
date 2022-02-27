@@ -357,9 +357,6 @@ TEST(SegmentHolderTests, Reduction)
 
 TEST(AgentTest, MakeAgentSpace)
 {
-  // TODO remove simplification
-  Agent agent{ 2 };
-
   Time depth = 3;
 
   RawSpace baseSpace(3, 3);

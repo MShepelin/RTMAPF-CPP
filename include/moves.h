@@ -6,9 +6,9 @@
 template<typename CellType>
 struct Move
 {
-  Time cost;
+  Time moveCost;
   CellType destination;
-  Time arrivalCost = 0;
+  Time waitCost = 0;
 };
 
 template<typename CellType>

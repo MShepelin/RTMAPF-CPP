@@ -21,7 +21,7 @@ public:
 
       if (space->GetAccess(destination) == Access::Accessable)
       {
-        result.push_back({ move.cost, destination});
+        result.push_back({ move.moveCost, destination});
       }
     }
 
@@ -62,11 +62,10 @@ public:
       {
         Segment both = moveAvailable & segment;
       
-        if (both.IsValid() && both.GetLength() >= move.cost)
+        if (both.IsValid() && both.GetLength() >= move.moveCost)
         {
-          Time overallCost = both.start + move.cost - node.minTime;
-          EXPECT_TRUE(overallCost >= move.cost);
-          result.push_back({ overallCost, Area{destinationPoint, segment} });
+          EXPECT_TRUE(both.start - node.minTime >= 0);
+          result.push_back({ move.moveCost, Area{destinationPoint, segment},  both.start - node.minTime });
         }
       }
     }

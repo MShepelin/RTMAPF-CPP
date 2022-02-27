@@ -39,10 +39,9 @@ public:
         // TODO mechanism to check collision with other cells (example: move from (0, 0) to (5, 5)
         Segment both = moveAvailable & segment;
 
-        if (both.IsValid() && both.GetLength() >= move.cost)
+        if (both.IsValid() && both.GetLength() >= move.moveCost)
         {
-          Time overallCost = both.start + move.cost - node.minTime;
-          result.push_back({ overallCost, Area{destinationPoint, segment}, move.cost });
+          result.push_back({ move.moveCost, Area{destinationPoint, segment}, both.start - node.minTime });
         }
       }
     }
@@ -66,7 +65,7 @@ public:
       if (segHolder.end() == segHolder.begin()) continue;
 
       // TODO mechanism to check collision with other cells (example: move from (0, 0) to (5, 5)
-      result.push_back({ move.cost, destinationPoint, move.cost });
+      result.push_back({ move.moveCost, destinationPoint });
     }
 
     return result;
@@ -189,9 +188,9 @@ public:
       animation << " " << currentArea.point.x << " " << currentArea.point.y << " " << std::setprecision(4) << path[i].minTime;
 
       Time finishWaiting = path[i + 1].minTime - path[i + 1].arrivalCost;
-      if (finishWaiting > path[i].minTime)
+      if (finishWaiting > path[i].minTime + 1e-5)
       {
-        animation << " " << currentArea.point.x << " " << currentArea.point.y << " " << std::setprecision(4) << path[i + 1].minTime - path[i + 1].arrivalCost;
+        animation << " " << currentArea.point.x << " " << currentArea.point.y << " " << std::setprecision(4) << finishWaiting;
       }
     }
 

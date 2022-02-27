@@ -79,14 +79,14 @@ struct Node
   // If heursticToGoal < 0 the node is in a "close" list, else it's in an "open" list
   // If minTime < 0 the node is currently inaccessable, 
   // else minTime = current min time to reach the node
-  Time  minTime, heursticToGoal;
-  size_t heapIndex;
-  Node<CellType>* parent;
+  Time minTime, heursticToGoal;
+  size_t heapIndex = 0;
+  Node<CellType>* parent = nullptr;
   Time arrivalCost = 0;
 
   Node();
   Node(CellType inCell);
-  Node(CellType inCell, Time inMinTime, Time inHeuristic = -1);
+  Node(CellType inCell, Time inMinTime, Time inHeuristic = -1, Time inArrivalCost = 0);
 
   inline void MarkClosed() { heursticToGoal = -1; }
 };
@@ -96,17 +96,14 @@ Node<CellType>::Node(CellType inCell)
   : cell(inCell)
   , minTime(0)
   , heursticToGoal(-1)
-  , parent(nullptr)
-  , heapIndex(0)
 { }
 
 template<typename CellType>
-Node<CellType>::Node(CellType inCell, Time inMinTime, Time inHeuristic)
+Node<CellType>::Node(CellType inCell, Time inMinTime, Time inHeuristic, Time inArrivalCost)
   : cell(inCell)
   , minTime(inMinTime)
   , heursticToGoal(inHeuristic)
-  , parent(nullptr)
-  , heapIndex(0)
+  , arrivalCost(inArrivalCost)
 { }
 
 template<typename CellType>
@@ -114,6 +111,4 @@ Node<CellType>::Node()
   : cell()
   , minTime(-1)
   , heursticToGoal(-1)
-  , parent(nullptr)
-  , heapIndex(0)
 { }
