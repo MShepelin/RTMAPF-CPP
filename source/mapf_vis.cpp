@@ -6,77 +6,8 @@
 #include <string>
 #include <iomanip>
 #include <cmath>
-
-class MovesTestSegment : public MoveComponent<Area>, public MoveComponent<Point>
-{
-protected:
-  Time depth;
-  ShapeSpace* space;
-  ArrayType<Move<Point>> moves;
-
-public:
-  virtual ArrayType<Move<Area>> FindValidMoves(const Node<Area>& node) override
-  {
-    ArrayType<Move<Area>> result;
-    Area origin = node.cell;
-
-    Segment moveAvailable{ node.minTime, node.cell.interval.end };
-    if (node.cell.interval.end >= depth)
-    {
-      result.push_back({ moveAvailable.GetLength(), Area{origin, {depth, depth}}, 0 });
-    }
-
-    for (Move<Point> move : moves)
-    {
-      Point destinationPoint = origin.point + move.destination;
-
-      space->UpdateShape(destinationPoint);
-      if (!space->ContainsSegmentsIn(destinationPoint)) continue;
-      const SegmentHolder& segHolder = space->GetSegments(destinationPoint);
-
-      for (Segment segment : segHolder)
-      {
-        // TODO mechanism to check collision with other cells (example: move from (0, 0) to (5, 5)
-        Segment both = moveAvailable & segment;
-
-        if (both.IsValid() && both.GetLength() >= move.moveCost)
-        {
-          result.push_back({ move.moveCost, Area{destinationPoint, segment}, both.start - node.minTime });
-        }
-      }
-    }
-
-    return result;
-  }
-
-  virtual ArrayType<Move<Point>> FindValidMoves(const Node<Point>& node) override
-  {
-    ArrayType<Move<Point>> result;
-    Point origin = node.cell;
-
-    for (Move<Point> move : moves)
-    {
-      Point destinationPoint = origin + move.destination;
-
-      space->UpdateShape(destinationPoint);
-      if (!space->ContainsSegmentsIn(destinationPoint)) continue;
-
-      const SegmentHolder& segHolder = space->GetSegments(destinationPoint);
-      if (segHolder.end() == segHolder.begin()) continue;
-
-      // TODO mechanism to check collision with other cells (example: move from (0, 0) to (5, 5)
-      result.push_back({ move.moveCost, destinationPoint });
-    }
-
-    return result;
-  }
-
-  MovesTestSegment(ArrayType<Move<Point>>& inmoves, ShapeSpace* inspace, Time inDepth)
-    : space(inspace)
-    , moves(inmoves)
-    , depth(inDepth)
-  {}
-};
+#include "agent.h"
+#include "mapf.h"
 
 class Mission
 {
@@ -154,24 +85,17 @@ public:
       Experiment agent = loader.GetNthExperiment(i);
       Point start = { agent.GetStartX(), agent.GetStartY() };
 
-      /*
       for (Point deltaPoint : agentShape.shape)
       {
         Point inaccessablePoint = start + deltaPoint;
         Segment inaccessableSegment = {0, depth};
         if (!space->ContainsSegmentsIn(inaccessablePoint) || !space->GetSegments(inaccessablePoint).Contains(inaccessableSegment))
         {
-          std::cout << "failed to init agent with id = " << i << " (location is inaccessable)\n";
+          std::cout << "failed to init agent with id = " << i << " (location " << inaccessablePoint.x << ";" << inaccessablePoint.y << " is inaccessable)\n";
           return 1;
         }
         space->SetAccess({ inaccessablePoint, inaccessableSegment }, Access::Inaccessable);
-      }*/
-      if (!space->ContainsSegmentsIn(start))
-      {
-        std::cout << "failed to init agent with id = " << i << " (location is inaccessable)\n";
-        return 1;
       }
-      space->SetAccess({ start, {0, depth} }, Access::Inaccessable);
     }
 
     return 0;
@@ -195,73 +119,34 @@ public:
     }
 
     animation << "\n";
-    //Area lastCell = path.back().cell;
-    //animation << " " << lastCell.point.x << " " << lastCell.point.y << " " << std::setprecision(4) << path.back().minTime << "\n";
-    //animation << " " << lastCell.point.x << " " << lastCell.point.y << " " << std::setprecision(4) << lastCell.interval.end << "\n";
-
     std::cout << "success!\n";
   }
 
   int SolveCycle()
   {
-    ArrayType<Move<Point>> moves =
-    {
-      Move<Point>{ 1, {0, 1}},
-      Move<Point>{ 1, {0, -1}},
-      Move<Point>{ 1, {1, 0}},
-      Move<Point>{ 1, {-1, 0}},
-      Move<Point>{ std::sqrt(2.f), {1, 1}},
-      Move<Point>{ std::sqrt(2.f), {-1, -1}},
-      Move<Point>{ std::sqrt(2.f), {1, -1}},
-      Move<Point>{ std::sqrt(2.f), {-1, 1}},
-    };
-
     for (int i = 0; i < agentsNum; ++i)
     {
-      // TODO add test when agent stands on one place
       std::cout << "Planning agent " << i << "... ";
+      
+      Experiment experiment = loader.GetNthExperiment(i);
+      Agent agent;
+      agent.id = i;
+      agent.shape = agentShape;
+      agent.currentX = experiment.GetStartX();
+      agent.currentY = experiment.GetStartY();
+      agent.goal = { experiment.GetGoalX(), experiment.GetGoalY() };
 
-      // Prepare agent
-      Experiment agent = loader.GetNthExperiment(i);
-      Point start = { agent.GetStartX(), agent.GetStartY() };
-      Point goal = { agent.GetGoalX(), agent.GetGoalY() };
-      Area origin = { start, {0, depth} };
-
-      // Prepare agent space
-      /*
+      Point start = { experiment.GetStartX(), experiment.GetStartY() };
       for (Point deltaPoint : agentShape.shape)
       {
-        space->SetAccess({ start + deltaPoint, {0, depth} }, Access::Accessable);
-      }*/
-
-      space->SetAccess({ start, {0, depth} }, Access::Accessable);
-      agentSpace = std::make_shared<ShapeSpace>(depth, space, agentShape);
-      agentSpace->UpdateShape(start);
-      agentSpace->UpdateShape(goal);
-
-      // Prepare pathfinding
-      std::shared_ptr<MovesTestSegment> movesComponent(new MovesTestSegment(moves, agentSpace.get(), depth));
-      std::shared_ptr<EuclideanHeuristic> simpleHeurisitc(new EuclideanHeuristic(start));
-      std::shared_ptr<Pathfinder<Point>> planeSearch(new Pathfinder<Point>(movesComponent, goal, simpleHeurisitc));
-      std::shared_ptr<Heuristic<Area>> h(new SpaceAdapter<Point, Area>(planeSearch));
-      WindowedPathfinder<Area> pathfinder(movesComponent, origin, h, depth);
-      Area destination = Area::FromDepth(goal, depth);
-
-      // Execute pathfinding
-      pathfinder.FindCost(destination);
-      if (!pathfinder.IsCostFound(destination))
-      {
-        std::cout << "failed to find agent with id = " << i << "\n";
-        return 1;
+        Point inaccessablePoint = start + deltaPoint;
+        Segment inaccessableSegment = { 0, depth };
+        space->SetAccess({ inaccessablePoint, inaccessableSegment }, Access::Accessable);
       }
 
-      ArrayType<Node<Area>> path;
-      pathfinder.CollectPath(destination, path);
-
-      ArrayType<Area> inaccessableParts;
-      FromPathToFilledAreas(path, agentShape, inaccessableParts);
-      space->MakeAreasInaccessable(inaccessableParts);
-
+      AdaptivePath adaptivePath(agent, space, depth);
+      if (!adaptivePath.Replan()) return 1;
+      std::vector<Node<Area>> path = adaptivePath.GetPath();
       PrintAgentPath(i, path);
     }
 
@@ -280,7 +165,6 @@ int main()
   }
   std::cout << "Animation init ok\n";
 
-
   if (mission.ReadSpace(100, TEST_DATA_PATH "/ost003d.map"))
   {
     std::cout << "ReadSpace failed\n";
@@ -288,14 +172,12 @@ int main()
   }
   std::cout << "ReadSpace ok\n";
 
-
   if (mission.InitAgents(64))
   {
     std::cout << "InitAgents failed\n";
     return 1;
   }
   std::cout << "InitAgents ok\n";
-
 
   if (mission.SolveCycle())
   {

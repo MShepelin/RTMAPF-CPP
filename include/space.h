@@ -76,6 +76,7 @@ public:
   virtual bool Contains(Area cell) const override;
 
   void MakeAreasInaccessable(const ArrayType<Area>& areas);
+  void MakeAreasAccessable(const std::vector<Area>& areas);
 };
 
 /**

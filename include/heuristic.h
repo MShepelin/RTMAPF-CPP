@@ -26,6 +26,24 @@ public:
   virtual ~Heuristic() {};
 };
 
+template<class CellType>
+class OneCellHeuristic : public Heuristic<Point>
+{
+private:
+  CellType origin;
+
+public:
+  OneCellHeuristic(Point inOrigin)
+    : Heuristic<Point>(inOrigin)
+    , origin(inOrigin)
+  {}
+
+  virtual bool IsCostFound(CellType to) const override
+  {
+    return origin == to;
+  }
+};
+
 class EuclideanHeuristic : public Heuristic<Point>
 {
 private:

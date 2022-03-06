@@ -6,6 +6,7 @@
 #include "moves.h"
 #include <chrono>
 #include <cassert>
+#include <iostream>
 
 template<typename CellType>
 class SearchResult
@@ -74,7 +75,9 @@ public:
 
   StatType GetStats() const { return statistics; }
 
-  void CollectPath(CellType to, ArrayType<NodeType>& path) const;
+  void CollectPath(CellType to, ArrayType<NodeType>& path, bool reverse = false) const;
+
+  void SetHeuristic(std::shared_ptr<Heuristic<CellType>> inHeuristic);
 };
 
 template<typename CellType>
@@ -117,13 +120,12 @@ Pathfinder<CellType>::Pathfinder(
   , openNodes(true)
   , heuristic(inHeuristic)
 {
-  /*
   heuristic->FindCost(origin);
   if (heuristic->IsCostFound(origin))
-  { }*/
-
-  nodes[origin] = Node<CellType>(origin, Time(0), 0);
-  openNodes.Insert(nodes[origin]);
+  {
+    nodes[origin] = Node<CellType>(origin, Time(0), heuristic->GetCost(origin));
+    openNodes.Insert(nodes[origin]);
+  }
 }
 
 template<typename CellType>
@@ -138,7 +140,7 @@ void Pathfinder<CellType>::ExpandNode(NodeType& node)
     if (potential_node == nodes.end())
     {
       heuristic->FindCost(destination);
-      if (!heuristic->IsCostFound(destination))
+      if (heuristic->IsCostFound(destination)) 
       {
         continue;
       }
@@ -210,7 +212,7 @@ void Pathfinder<CellType>::FindCost(CellType to)
 }
 
 template<typename CellType>
-void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path) const
+void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path, bool reverse) const
 {
   path.clear();
 
@@ -232,7 +234,11 @@ void Pathfinder<CellType>::CollectPath(CellType to, ArrayType<NodeType>& path) c
     ));
     currentNode = currentNode->parent;
   }
-  std::reverse(path.begin(), path.end());
+
+  if (!reverse)
+  {
+    std::reverse(path.begin(), path.end());
+  }
 
   statistics.StopTimer();
 }

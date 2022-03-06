@@ -29,3 +29,4 @@ public:
 };
 
 void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, const Shape& shape, ArrayType<Area>& areas);
+void FromReversedPathToFilledAreas(const ArrayType<Node<Area>>& path, const Shape& shape, ArrayType<Area>& areas);

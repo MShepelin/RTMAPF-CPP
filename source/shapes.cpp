@@ -58,7 +58,6 @@ void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, const Shape& shape
   for (size_t cellIndex = 0; cellIndex + 1 < path.size(); ++cellIndex)
   {
     Segment movementOnPlace{ path[cellIndex].minTime - path[cellIndex].arrivalCost, path[cellIndex + 1].minTime };
-
     for (const Point& deltaPoint : shape.shape)
     {
       Point spacePointFrom = path[cellIndex].cell.point + deltaPoint;
@@ -67,10 +66,31 @@ void FromPathToFilledAreas(const ArrayType<Node<Area>>& path, const Shape& shape
   }
 
   Segment movementOnPlace{ path.back().minTime - path.back().arrivalCost, path.back().cell.interval.end };
-
   for (const Point& deltaPoint : shape.shape)
   {
     Point spacePointFrom = path.back().cell.point + deltaPoint;
     areas.push_back(Area(spacePointFrom, movementOnPlace));
+  }
+}
+
+void FromReversedPathToFilledAreas(const ArrayType<Node<Area>>& path, const Shape& shape, ArrayType<Area>& areas)
+{
+  areas.clear();
+
+  Segment movementOnPlace{ path.front().minTime - path.front().arrivalCost, path.front().cell.interval.end };
+  for (const Point& deltaPoint : shape.shape)
+  {
+    Point spacePointFrom = path.front().cell.point + deltaPoint;
+    areas.push_back(Area(spacePointFrom, movementOnPlace));
+  }
+
+  for (size_t cellIndex = 1; cellIndex < path.size(); ++cellIndex)
+  {
+    Segment movementOnPlace{ path[cellIndex].minTime - path[cellIndex].arrivalCost, path[cellIndex - 1].minTime };
+    for (const Point& deltaPoint : shape.shape)
+    {
+      Point spacePointFrom = path[cellIndex].cell.point + deltaPoint;
+      areas.push_back(Area(spacePointFrom, movementOnPlace));
+    }
   }
 }

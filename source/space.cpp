@@ -165,6 +165,19 @@ void SegmentSpace::MakeAreasInaccessable(const std::vector<Area>& areas)
   }
 }
 
+void SegmentSpace::MakeAreasAccessable(const std::vector<Area>& areas)
+{
+  for (const Area& area : areas)
+  {
+    if (!ContainsSegmentsIn(area.point))
+    {
+      continue;
+    }
+
+    segmentGrid[area.point].AddSegment(area.interval);
+  }
+}
+
 Access SegmentSpace::GetAccess(Area cell) const
 {
   assert(Contains(cell));
